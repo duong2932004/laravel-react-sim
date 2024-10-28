@@ -1,0 +1,16 @@
+.scroll-filter::-webkit-scrollbar {
+  width: 9px;
+}
+
+.scroll-filter::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.scroll-filter::-webkit-scrollbar-thumb {
+  background-color: #888;
+  border-radius: 10px;
+}
+
+.scroll-filter::-webkit-scrollbar-thumb:hover {
+  background-color: #555;
+}

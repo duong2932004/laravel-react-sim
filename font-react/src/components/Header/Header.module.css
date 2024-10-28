@@ -1,0 +1,14 @@
+.top-header {
+  background-color: #ef2827;
+}
+.bottom-header {
+  background-color: #e5e7eb;
+}
+.menu-scroll {
+  height: 100vh;
+  overflow-y: auto;
+  background-color: #ffffff;
+  padding: 10px;
+  border-radius: 8px;
+  padding-bottom: 100px;
+}

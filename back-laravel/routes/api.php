@@ -1,19 +1,24 @@
 <?php
-
-use Illuminate\Http\Request;
+use App\Http\Controllers\AdminController;
+use App\Http\Controllers\ProductCategoryController;
+use App\Http\Controllers\ProductController;
+use App\Http\Controllers\MobileNetworksController;
+use App\Http\Controllers\StartNumberController;
 use Illuminate\Support\Facades\Route;
 
-/*
-|--------------------------------------------------------------------------
-| API Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register API routes for your application. These
-| routes are loaded by the RouteServiceProvider and all of them will
-| be assigned to the "api" middleware group. Make something great!
-|
-*/
+Route::apiResource('admins', AdminController::class);
+Route::apiResource('product-categories', ProductCategoryController::class);
+Route::apiResource('mobile-networks', MobileNetworksController::class);
+Route::apiResource('start-numbers', StartNumberController::class);
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
+//sản phẩm
+Route::apiResource('products', ProductController::class);
+Route::prefix('products')->group(function (){
+    Route::get('/search/{number}', [ProductController::class, 'search']);
 });
+Route::get('/detail/{number}', [ProductController::class, 'detailPhoneNumber']);
+
+
+//load trang web
+Route::get('/get-value-load-page', [ProductController::class, 'loadPage']);
+Route::get('/value-sidebar-load-page', [ProductController::class, 'sidebarLoadPage']);
