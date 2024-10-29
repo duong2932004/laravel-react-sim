@@ -42,6 +42,7 @@ export interface StratNumbers {
   id: number;
   name: string;
 }
+//sidebar_result
 export interface SideBar {
   dataSidebar: {
     mobile_networks: MobileNetwork[];

@@ -1,8 +1,7 @@
 const routes = {
   home: "/",
   detail: "/thong-tin/:number",
-  introduce: "/gioi-thieu",
-  login: "/login",
+  mobile_network: "/sim/:mobile_network_name",
 };
 
 export default routes;

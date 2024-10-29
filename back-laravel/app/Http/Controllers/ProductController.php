@@ -113,6 +113,7 @@ class ProductController extends Controller
             foreach ($mobile_networks as $mobile_network) {
                 $products = Product::query()
                     ->where('mobile_networks_id', '=', $mobile_network->id)
+                    ->where('quantity', '>', 0)
                     ->limit(12)
                     ->get()
                     ->makeHidden(['id', 'created_at', 'updated_at', 'deleted_at']);
@@ -215,6 +216,51 @@ class ProductController extends Controller
             ]);
         }
     }
-
+    public function getOneMobileNetworks($mobile_networks_name)
+    {
+        try {
+            $data_mobile_networks = [];
+            $mobile_networks_query = Mobile_networks::query()->select('id','name','image')->where('name', '=', $mobile_networks_name)->first();
+            $products = Product::query()
+                ->where('mobile_networks_id', '=', $mobile_networks_query->id)
+                ->where('quantity', '>', 0)
+                ->select(
+                    'id',
+                    'start_number_id',
+                    'mobile_networks_id',
+                    'number',
+                    'price',
+                    'quantity',
+                    'describe')
+                ->paginate(39)
+            ;
+            $mobile_networks = Mobile_networks::query()->select('id', 'name', 'image')->get();
+            foreach ($mobile_networks as $item) {
+                $data_mobile_networks[] = [
+                    'id' => $item->id,
+                    'name' => $item->name,
+                    'image' => Storage::url($item->image),
+                ];
+            }
+            return response()->json([
+                'success' => true,
+                'status' => 200,
+                'data' => [
+                    'products' => $products,
+                    'mobile_networks' => $data_mobile_networks,
+                ],
+                'warning' => '',
+                'error' => ''
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'status' => 500,
+                'data' => [],
+                'warning' => 'Đã xảy ra lỗi không xác định',
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
 
 }

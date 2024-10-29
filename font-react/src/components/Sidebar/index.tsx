@@ -1,6 +1,7 @@
 import classNames from "classnames/bind";
 import styles from "./Sidebar.module.css";
 import { SideBar } from "@/interface/PhoneNumber";
+import { useNavigate } from "react-router-dom";
 
 const cx = classNames.bind(styles);
 function Sidebar(props: SideBar) {
@@ -26,7 +27,10 @@ function Sidebar(props: SideBar) {
     "Sim Tứ Quý 4",
     "Sim Tam Hoa 6",
   ];
-
+  const navigate = useNavigate();
+  const handleMobileNetWork = (name: string) => {
+    navigate(`/sim/${name}`);
+  };
   return (
     <div className={cx("wrapper")}>
       <h2 className="font-medium mb-2">SIM THEO MẠNG</h2>
@@ -34,6 +38,7 @@ function Sidebar(props: SideBar) {
         {props.dataSidebar.mobile_networks.map((value) => {
           return (
             <button
+              onClick={() => handleMobileNetWork(value.name)}
               key={value.id}
               className="mr-1 mb-2 px-3 py-2 bg-gray-200 border rounded hover:border-red-500"
             >

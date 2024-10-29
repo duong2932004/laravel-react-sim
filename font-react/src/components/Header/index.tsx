@@ -4,10 +4,11 @@ import styles from "./Header.module.css";
 import Search from "@/components/Search";
 import { AiOutlineMenu, AiOutlineClose } from "react-icons/ai";
 import { Link } from "react-router-dom";
+import { SideBar } from "@/interface/PhoneNumber";
 
 const cx = classNames.bind(styles);
 
-function Header() {
+function Header(props: SideBar) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const toggleMenu = () => {
@@ -29,7 +30,7 @@ function Header() {
           </div>
 
           <div
-            className="hamburger-menu text-white md:hidden border border-2 rounded"
+            className="hamburger-menu text-white md:hidden border-2 rounded"
             onClick={toggleMenu}
           >
             {isMenuOpen ? (
@@ -50,7 +51,7 @@ function Header() {
       </div>
 
       {/* Thanh navigation đầy đủ ở màn hình lớn */}
-      <div className={`${cx("bottom-header")} hidden lg:block h-max`}>
+      {/* <div className={`${cx("bottom-header")} hidden lg:block h-max`}>
         <nav className="m-auto max-w-screen-lg">
           <ul className="flex justify-between py-3 text-base">
             <li>
@@ -80,7 +81,7 @@ function Header() {
             </li>
           </ul>
         </nav>
-      </div>
+      </div> */}
 
       {/* Search box khi màn hình nhỏ */}
       {!isMenuOpen && (
@@ -95,22 +96,58 @@ function Header() {
           <h1 className="font-medium text-xl">Danh mục</h1>
           <hr />
           <ul className=" grid grid-cols-2 justify-center items-center text-center gap-2 mt-2">
-            <li className="bg-red-500 rounded-xl p-1 text-white font-light ">
-              <a href="#">Trang chủ</a>
+            <li className="bg-red-600 rounded-xl p-1 text-white font-light ">
+              <Link to={"/"} onClick={() => setIsMenuOpen(false)}>
+                Trang chủ
+              </Link>
             </li>
-            <li className="bg-red-500 rounded-xl p-1 text-white font-light">
+            <li className="bg-red-600 rounded-xl p-1 text-white font-light">
               <a href="#">Giới thiệu</a>
             </li>
-            <li className="bg-red-500 rounded-xl p-1 text-white font-light">
+            <li className="bg-red-600 rounded-xl p-1 text-white font-light">
               <a href="#">Tin tức</a>
             </li>
-            <li className="bg-red-500 rounded-xl p-1 text-white font-light">
+            <li className="bg-red-600 rounded-xl p-1 text-white font-light">
               <a href="#">Sản phẩm</a>
             </li>
-            <li className="bg-red-500 rounded-xl p-1 text-white font-light">
+            <li className="bg-red-600 rounded-xl p-1 text-white font-light">
               <a href="#">Liên hệ</a>
             </li>
           </ul>
+          <h1 className="font-medium text-xl">SIM THEO MẠNG</h1>
+          {props.dataSidebar.mobile_networks.map((value, index) => {
+            return (
+              <button
+                key={index}
+                className="px-2 py-1 rounded border-2 mr-1 mb-1"
+              >
+                <img src={value.image} className="w-14 h-8 bg-cover" alt="" />
+              </button>
+            );
+          })}
+          <h1 className="font-medium text-xl">SIM THEO LOẠI</h1>
+          {props.dataSidebar.category.map((value, index) => {
+            return (
+              <button
+                key={index}
+                className="px-2 py-1 rounded border-2 mr-1 mb-1 bg-gray-200"
+              >
+                {value.name}
+              </button>
+            );
+          })}
+          <h1 className="font-medium text-xl">SIM THEO GIÁ</h1>
+          {props.priceOptions.map((value, index) => {
+            return (
+              <button
+                key={index}
+                value={value.value}
+                className="px-2 py-1 rounded border-2 mr-1 mb-1 bg-gray-200"
+              >
+                {value.label}
+              </button>
+            );
+          })}
         </div>
       )}
     </header>
