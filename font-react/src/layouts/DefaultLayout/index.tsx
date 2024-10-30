@@ -40,6 +40,7 @@ function DefaultLayout({ children }: ChildrenDefaultLayoutITF) {
       if (value.data.status === 200) {
         setSidebar(value.data.data);
         setLoading(false);
+        console.log(value.data.data);
       } else {
         console.log("Failed to fetch sidebar data");
       }

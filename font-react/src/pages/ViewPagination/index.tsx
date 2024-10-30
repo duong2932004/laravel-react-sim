@@ -2,37 +2,55 @@ import { useState, useEffect } from "react";
 import {
   PaginationMobileNetwork,
   PaginationPage,
+  PaginationStartNumber,
+  PaginationCategory,
 } from "@/services/ViewPagination";
-import { Link, useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import classNames from "classnames/bind";
 import styles from "./ViewMore.module.css";
-import { MobileNetwork } from "@/interface/ViewPagination";
+import { MobileNetwork, NavigationUrl } from "@/interface/ViewPagination";
 import Filter from "@/components/Filter";
 import { FormatSimNumber } from "@/utils/FormatSimNumber";
 import image404 from "@/assets/img/404.jpg";
+import config from "@/config";
+import { usePreviousPath } from "@/contexts/PreviousPathContext";
 
 const cx = classNames.bind(styles);
 
 export default function ViewPagination() {
-  const { mobile_network_name } = useParams<{ mobile_network_name: string }>();
+  const { previousPath } = usePreviousPath();
+
+  const { mobile_network_name, start_number_name, category_label } =
+    useParams<NavigationUrl>();
   const [dataPagination, setDataPagination] = useState<MobileNetwork>();
+  const [title, setTitle] = useState<string | undefined>();
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchAPI = async () => {
-      if (mobile_network_name) {
-        try {
+      try {
+        if (mobile_network_name) {
           const response = await PaginationMobileNetwork(mobile_network_name);
           setDataPagination(response.data);
-        } catch (error) {
-          console.error("Error fetching data:", error);
+          setTitle(mobile_network_name);
+        } else if (start_number_name) {
+          const response = await PaginationStartNumber(start_number_name);
+          setDataPagination(response.data);
+          setTitle(start_number_name);
+        } else if (category_label) {
+          const response = await PaginationCategory(category_label);
+          setDataPagination(response.data);
+          setTitle(response.data.category_name);
+        } else {
+          console.error("No valid parameter provided");
         }
-      } else {
-        console.error("no mobile network name");
+      } catch (error) {
+        console.error("Error fetching data:", error);
       }
     };
+
     fetchAPI();
-  }, [mobile_network_name]);
+  }, [mobile_network_name, start_number_name, category_label]);
 
   const handleBtnPagination = async (url: string) => {
     try {
@@ -48,7 +66,7 @@ export default function ViewPagination() {
   };
 
   const handleProductClick = (number: string) => {
-    navigate(`/thong-tin/${number}`);
+    navigate(config.routes.routes.detail(number));
   };
 
   const renderPaginationButtons = () => {
@@ -132,16 +150,19 @@ export default function ViewPagination() {
       {dataPagination ? (
         <div className="m-1">
           <div className="flex gap-1">
-            <Link className="font-medium hover:underline" to={"/"}>
-              Home
-            </Link>{" "}
-            {">>"} <p> Sim {mobile_network_name}</p>
+            <b
+              className="font-medium hover:underline"
+              onClick={() =>
+                previousPath ? navigate(previousPath) : navigate("/")
+              }
+            >
+              Trở lại
+            </b>
+            {">>"} <p> Sim {title}</p>
           </div>
           <hr className="my-2" />
           <div className="flex justify-between items-center">
-            <h1 className="font-bold text-2xl mb-2">
-              Sim {mobile_network_name}
-            </h1>
+            <h1 className="font-bold text-2xl mb-2">Sim {title}</h1>
             <em className="text-orange-500 font-medium">
               {dataPagination.products.total.toLocaleString("vn")} sim
             </em>
@@ -172,11 +193,7 @@ export default function ViewPagination() {
               );
             })}
           </div>
-          <div className="mt-2 pagination flex justify-between items-center">
-            <div>
-              {/* Trang {dataPagination.products.current_page}/
-              {dataPagination.products.last_page} */}
-            </div>
+          <div className="mt-2 pagination flex justify-center items-center">
             {renderPaginationButtons()}
           </div>
         </div>

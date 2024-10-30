@@ -8,8 +8,12 @@ import { searchGet } from "@/services/Search";
 import { AiOutlineLoading } from "react-icons/ai";
 import classNames from "classnames/bind";
 import styles from "./Search.module.css";
+import { useNavigate } from "react-router-dom";
+import config from "@/config";
 const cx = classNames.bind(styles);
 function Search() {
+  const navigate = useNavigate();
+
   const { register, watch, setValue } = useForm<DataSearch>({
     defaultValues: { search: "" },
   });
@@ -67,6 +71,13 @@ function Search() {
     if (!query) return text;
     const regex = new RegExp(`(${query})`, "gi");
     return text.replace(regex, "<mark>$1</mark>");
+  };
+
+  const handleResult = (result: string) => {
+    navigate(config.routes.routes.detail(result));
+    setSearchValue("");
+    setValue("search", "");
+    setResult([]);
   };
 
   return (
@@ -137,6 +148,8 @@ function Search() {
                     {result.length > 0 ? (
                       result.map((item, index) => (
                         <li
+                          onMouseDown={() => handleResult(item.number)}
+                          onClick={() => handleResult(item.number)}
                           key={index}
                           className="hover:bg-gray-500 p-1 rounded font-medium"
                           dangerouslySetInnerHTML={{

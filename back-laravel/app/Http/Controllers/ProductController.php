@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Category;
 use App\Models\Mobile_networks;
 use App\Models\Product;
+use App\Models\Product_category;
 use App\Models\Start_number;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -98,7 +99,7 @@ class ProductController extends Controller
         try {
             $dataProduct = [];
             $data_mobile_networks = [];
-            $categories = Category::query()->select('id', 'name')->get();
+            $categories = Category::query()->select('id', 'name','label')->get();
             $start_number = Start_number::query()->select('id', 'name')->get();
             $mobile_networks = Mobile_networks::query()->select('id', 'name', 'image')->get();
 
@@ -150,7 +151,7 @@ class ProductController extends Controller
     {
         try {
             $data_mobile_networks = [];
-            $categories = Category::query()->select('id', 'name')->get();
+            $categories = Category::query()->select('id', 'name','label')->get();
             $start_number = Start_number::query()->select('id', 'name')->get();
             $mobile_networks = Mobile_networks::query()->select('id', 'name', 'image')->get();
             foreach ($mobile_networks as $item) {
@@ -262,5 +263,110 @@ class ProductController extends Controller
             ]);
         }
     }
+    public function getOneStartNumber($start_number_name)
+    {
+        try {
+            $data_mobile_networks = [];
+            $data_query = Start_number::query()->select('id','name')->where('name', '=', $start_number_name)->first();
+            $products = Product::query()
+                ->where('start_number_id', '=', $data_query->id)
+                ->where('quantity', '>', 0)
+                ->select(
+                    'id',
+                    'start_number_id',
+                    'mobile_networks_id',
+                    'number',
+                    'price',
+                    'quantity',
+                    'describe')
+                ->paginate(39)
+            ;
+            $mobile_networks = Mobile_networks::query()->select('id', 'name', 'image')->get();
+            foreach ($mobile_networks as $item) {
+                $data_mobile_networks[] = [
+                    'id' => $item->id,
+                    'name' => $item->name,
+                    'image' => Storage::url($item->image),
+                ];
+            }
+            return response()->json([
+                'success' => true,
+                'status' => 200,
+                'data' => [
+                    'products' => $products,
+                    'mobile_networks' => $data_mobile_networks,
+                ],
+                'warning' => '',
+                'error' => ''
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'status' => 500,
+                'data' => [],
+                'warning' => 'Đã xảy ra lỗi không xác định',
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+    public function getOneTypeCategory($category_label)
+    {
+        try {
+            $data_mobile_networks = [];
+
+            $data_query = Category::query()->select('id', 'name','label')->where('label', '=', $category_label)->first();
+
+            if (!$data_query) {
+                return response()->json([
+                    'success' => false,
+                    'status' => 404,
+                    'data' => [],
+                    'warning' => 'Không tìm thấy danh mục',
+                    'error' => '',
+                ]);
+            }
+
+            $products_category = Product_category::query()->select('product_id')
+                ->where('category_id', '=', $data_query->id)->get();
+
+            $product_ids = $products_category->pluck('product_id')->toArray();
+
+            $products = Product::query()
+                ->whereIn('id', $product_ids)
+                ->where('quantity', '>', 0)
+                ->select('id', 'start_number_id', 'mobile_networks_id', 'number', 'price', 'quantity', 'describe')
+                ->paginate(39);
+
+            $mobile_networks = Mobile_networks::query()->select('id', 'name', 'image')->get();
+            foreach ($mobile_networks as $item) {
+                $data_mobile_networks[] = [
+                    'id' => $item->id,
+                    'name' => $item->name,
+                    'image' => Storage::url($item->image),
+                ];
+            }
+
+            return response()->json([
+                'success' => true,
+                'status' => 200,
+                'data' => [
+                    'products' => $products,
+                    'mobile_networks' => $data_mobile_networks,
+                    'category_name' => $data_query->name,
+                ],
+                'warning' => '',
+                'error' => ''
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'status' => 500,
+                'data' => [],
+                'warning' => 'Đã xảy ra lỗi không xác định',
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+
 
 }

@@ -10,7 +10,7 @@ function Footer() {
       <footer
         className={`${cx(
           "footer"
-        )} footer container mx-auto max-w-screen-lg grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 py-3`}
+        )} footer container mx-auto max-w-screen-lg grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 py-3 pb-16 lg:pb-0`}
       >
         <div className={cx("ft-1")}>
           <h3 className="font-bold">

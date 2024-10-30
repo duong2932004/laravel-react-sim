@@ -17,7 +17,7 @@ function Header(props: SideBar) {
 
   return (
     <header className={`${cx("wrapper")} fixed top-0 right-0 left-0 z-50`}>
-      <div className={`${cx("top-header")} w-full`}>
+      <div className={`${cx("top-header")} w-full sm:pl-3`}>
         <div className="py-2 m-auto max-w-screen-lg flex justify-between items-center">
           <div className="logo">
             <Link to="/">
@@ -30,7 +30,7 @@ function Header(props: SideBar) {
           </div>
 
           <div
-            className="hamburger-menu text-white md:hidden border-2 rounded"
+            className="hamburger-menu text-white md:hidden pr-3 lg:pr-0"
             onClick={toggleMenu}
           >
             {isMenuOpen ? (

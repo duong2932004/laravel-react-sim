@@ -1,10 +1,11 @@
 import classNames from "classnames/bind";
 import styles from "./Sidebar.module.css";
 import { SideBar } from "@/interface/PhoneNumber";
-import { useNavigate } from "react-router-dom";
-
+import { useNavigation } from "@/utils/Navigation";
 const cx = classNames.bind(styles);
 function Sidebar(props: SideBar) {
+  const { NavigateMobileNetwork, NavigateStartNumber, NavigateCategory } =
+    useNavigation();
   const popular_keywords = [
     "Sim Tứ Quý 9",
     "Sim Tam Hoa 0",
@@ -27,10 +28,7 @@ function Sidebar(props: SideBar) {
     "Sim Tứ Quý 4",
     "Sim Tam Hoa 6",
   ];
-  const navigate = useNavigate();
-  const handleMobileNetWork = (name: string) => {
-    navigate(`/sim/${name}`);
-  };
+
   return (
     <div className={cx("wrapper")}>
       <h2 className="font-medium mb-2">SIM THEO MẠNG</h2>
@@ -38,7 +36,7 @@ function Sidebar(props: SideBar) {
         {props.dataSidebar.mobile_networks.map((value) => {
           return (
             <button
-              onClick={() => handleMobileNetWork(value.name)}
+              onClick={() => NavigateMobileNetwork(value.name)}
               key={value.id}
               className="mr-1 mb-2 px-3 py-2 bg-gray-200 border rounded hover:border-red-500"
             >
@@ -51,6 +49,7 @@ function Sidebar(props: SideBar) {
         {props.dataSidebar.strat_numbers.map((value) => {
           return (
             <button
+              onClick={() => NavigateStartNumber(value.name)}
               key={value.id}
               className="mr-1 mb-2 px-3 py-2 bg-gray-200 border rounded hover:border-red-500"
             >
@@ -78,6 +77,7 @@ function Sidebar(props: SideBar) {
         {props.dataSidebar.category.map((value) => {
           return (
             <button
+              onClick={() => NavigateCategory(value.label)}
               key={value.id}
               className="mr-1 mb-2 p-1 bg-gray-200 border rounded hover:border-red-500"
             >
@@ -86,7 +86,7 @@ function Sidebar(props: SideBar) {
           );
         })}
       </div>
-      <h2 className="font-medium mb-2">LOẠI SIM</h2>
+      <h2 className="font-medium mb-2">Các từ khóa phổ biến</h2>
       <div className="grid grid-cols-1 lg:grid-cols-2">
         {popular_keywords.map((value, index) => {
           return (

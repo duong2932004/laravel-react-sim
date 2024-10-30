@@ -3,7 +3,7 @@ export interface DataSearch {
 }
 export interface ResultSearch {
   mobile_network_name: string;
-  number: number;
+  number: string;
 }
 export interface MobileNetwork {
   id: number;
@@ -37,6 +37,7 @@ export interface Product {
 export interface Category {
   id: number;
   name: string;
+  label: string;
 }
 export interface StratNumbers {
   id: number;

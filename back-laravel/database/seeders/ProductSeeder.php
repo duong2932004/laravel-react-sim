@@ -1,4 +1,5 @@
 <?php
+
 namespace Database\Seeders;
 
 use App\Models\Mobile_networks;
@@ -10,40 +11,33 @@ use Faker\Factory as Faker;
 class ProductSeeder extends Seeder
 {
     /**
-     * Run the database seeds.
+     * Chạy các dữ liệu giả cho cơ sở dữ liệu.
      */
     public function run(): void
     {
-        // Các số bắt đầu
-        $start_numbers = [
-            '09',
-            '08',
-            '07',
-            '05',
-            '03'
-        ];
-
         // Lấy danh sách tất cả các id của start_numbers từ bảng start_numbers
-        $start_number_ids = Start_number::pluck('id')->toArray();
+        $start_numbers = Start_number::all();
 
         $faker = Faker::create();
 
         for ($i = 1; $i <= 1000; $i++) {
-            // Chọn ngẫu nhiên một start_number_id từ bảng start_numbers
-            $start_number_id = $start_number_ids[array_rand($start_number_ids)];
+            // Chọn ngẫu nhiên một start_number từ bảng start_numbers
+            $start_number = $start_numbers->random();
 
-            // Lấy ngẫu nhiên một mobile_networks_id hợp lệ
+            // Lấy ngẫu nhiên một mobile_network_id hợp lệ
             $mobile_network_id = Mobile_networks::inRandomOrder()->first()->id;
 
-            // Tạo một số điện thoại ngẫu nhiên với 10 ký tự
-            $start_number = $start_numbers[array_rand($start_numbers)];
+            // Loại bỏ chữ 'x' trong start_number
+            $start_number_prefix = str_replace('x', '', $start_number->name);
+
+            // Tạo một số điện thoại ngẫu nhiên với đầu số tương ứng
             $random_number = $faker->numberBetween(10000000, 99999999);
-            $phone_number = $start_number . $random_number; // Kết hợp
+            $phone_number = $start_number_prefix . $random_number; // Kết hợp
 
             DB::table('products')->insert([
-                'start_number_id' => $start_number_id, // Sử dụng id hợp lệ
+                'start_number_id' => $start_number->id, // Sử dụng id hợp lệ
                 'mobile_networks_id' => $mobile_network_id,
-                'number' => $phone_number, // Số điện thoại 10 ký tự
+                'number' => $phone_number, // Số điện thoại
                 'price' => $faker->randomFloat(2, 100000, 10000000),
                 'quantity' => $faker->numberBetween(1, 100),
                 'describe' => $faker->text(200),

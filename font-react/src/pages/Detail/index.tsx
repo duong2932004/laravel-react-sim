@@ -4,10 +4,14 @@ import styles from "./Detail.module.css";
 import { useEffect, useState } from "react";
 import { DeatilPhoneNumber } from "@/services/PhoneNumber";
 import { DetailITF } from "@/interface/PhoneNumber";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 const cx = classNames.bind(styles);
+import { usePreviousPath } from "@/contexts/PreviousPathContext";
+
 import { FormatSimNumber } from "@/utils/FormatSimNumber";
 function Detail() {
+  const navigate = useNavigate();
+
   const [moreDoc, setMoreDoc] = useState(true);
   const { number } = useParams<{ number: string }>();
   const [phoneNumber, setPhoneNumber] = useState<DetailITF>();
@@ -24,15 +28,21 @@ function Detail() {
       fecthAPI();
     }
   }, [number]);
+  const { previousPath } = usePreviousPath();
 
   return (
     <div className={cx("wrapper")}>
       {phoneNumber ? (
         <div className="m-1">
           <div className="flex gap-1">
-            <Link className="font-medium hover:underline" to={"/"}>
-              Home
-            </Link>{" "}
+            <b
+              className="font-medium hover:underline"
+              onClick={() =>
+                previousPath ? navigate(previousPath) : navigate("/")
+              }
+            >
+              Trở lại
+            </b>
             {">>"} <p> Sim {phoneNumber.number}</p>
           </div>
           <hr className="my-2" />

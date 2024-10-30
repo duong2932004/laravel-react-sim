@@ -30,4 +30,6 @@ Route::get('/value-sidebar-load-page', [ProductController::class, 'sidebarLoadPa
 // phân trang
 Route::prefix('/pagination')->group(function (){
     Route::get('/mobileNetworks/{mobile_networks_name}',[ProductController::class,'getOneMobileNetworks']);
+    Route::get('/startNumbers/{start_number_name}',[ProductController::class,'getOneStartNumber']);
+    Route::get('/category/{category_label}',[ProductController::class,'getOneTypeCategory']);
 });

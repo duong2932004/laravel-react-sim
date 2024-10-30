@@ -13,31 +13,95 @@ class CategorySeeder extends Seeder
      */
     public function run(): void
     {
-        $category = [
-        'SIM Vip',
-        'Sim Tam Hoa',
-        'Sim Tam hoa kép',
-        'Sim Tứ quý',
-        'Sim Tứ quý giữa',
-        'Sim Ngũ Quý',
-        'Sim Ngũ quý giữa',
-        'Sim Lục Quý',
-        'Sim Lục quý giữa',
-        'Sim năm sinh',
-        'Sim Lộc Phát',
-        'Sim Thần Tài',
-        'Sim Dễ nhớ',
-        'Sim Taxi',
-        'SIM đầu số cổ',
-        'Sim Tiến Lên',
-        'Sim Lặp kép',
-        'Sim Gánh đảo',
-        'Sim Số độc',
-        'Sim Ông Địa',
-        'Sim Lặp'
+        $categories = [
+            [
+                'name' => 'SIM Vip',
+                'label' => 'sim-vip'
+            ],
+            [
+                'name' => 'Sim Tam Hoa',
+                'label' => 'sim-tam-hoa'
+            ],
+            [
+                'name' => 'Sim Tam hoa kép',
+                'label' => 'sim-tam-hoa-kep'
+            ],
+            [
+                'name' => 'Sim Tứ quý',
+                'label' => 'sim-tu-quy'
+            ],
+            [
+                'name' => 'Sim Tứ quý giữa',
+                'label' => 'sim-tu-quy-giua'
+            ],
+            [
+                'name' => 'Sim Ngũ Quý',
+                'label' => 'sim-ngu-quy'
+            ],
+            [
+                'name' => 'Sim Ngũ quý giữa',
+                'label' => 'sim-ngu-quy-giua'
+            ],
+            [
+                'name' => 'Sim Lục Quý',
+                'label' => 'sim-luc-quy'
+            ],
+            [
+                'name' => 'Sim Lục quý giữa',
+                'label' => 'sim-luc-quy-giua'
+            ],
+            [
+                'name' => 'Sim năm sinh',
+                'label' => 'sim-nam-sinh'
+            ],
+            [
+                'name' => 'Sim Lộc Phát',
+                'label' => 'sim-loc-phat'
+            ],
+            [
+                'name' => 'Sim Thần Tài',
+                'label' => 'sim-than-tai'
+            ],
+            [
+                'name' => 'Sim Dễ nhớ',
+                'label' => 'sim-de-nho'
+            ],
+            [
+                'name' => 'Sim Taxi',
+                'label' => 'sim-taxi'
+            ],
+            [
+                'name' => 'SIM đầu số cổ',
+                'label' => 'sim-dau-so-co'
+            ],
+            [
+                'name' => 'Sim Tiến Lên',
+                'label' => 'sim-tien-len'
+            ],
+            [
+                'name' => 'Sim Lặp kép',
+                'label' => 'sim-lap-kep'
+            ],
+            [
+                'name' => 'Sim Gánh đảo',
+                'label' => 'sim-ganh-dao'
+            ],
+            [
+                'name' => 'Sim Số độc',
+                'label' => 'sim-so-doc'
+            ],
+            [
+                'name' => 'Sim Ông Địa',
+                'label' => 'sim-ong-dia'
+            ],
+            [
+                'name' => 'Sim Lặp',
+                'label' => 'sim-lap'
+            ]
         ];
-        foreach ($category as $item) {
-            Category::create(['name' => $item]);
+
+        foreach ($categories as $item) {
+            Category::create($item);
         }
     }
 }

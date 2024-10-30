@@ -1,6 +1,7 @@
 export interface MobileNetwork {
   products: ProductMobileNetwork;
   mobile_networks: childrenMobileNetwork[];
+  category_name?: string;
 }
 export interface childrenMobileNetwork {
   id: number;
@@ -35,4 +36,11 @@ export interface ProductMobileNetwork {
   prev_page_url: null | string;
   to: number;
   total: number;
+}
+// Navigation
+export interface NavigationUrl {
+  mobile_network_name?: string;
+  start_number_name?: string;
+  category_label?: string;
+  [key: string]: string | undefined;
 }
