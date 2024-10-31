@@ -15,12 +15,12 @@ export interface LoadPageResult {
   mobile_networks: MobileNetwork[];
   products: Products[];
   category: Category[];
-  strat_numbers: StratNumbers[];
+  start_number: StartNumbers[];
 }
 export interface SidebarResult {
   mobile_networks: MobileNetwork[];
   category: Category[];
-  strat_numbers: StratNumbers[];
+  start_numbers: StartNumbers[];
 }
 export interface Products {
   products: Product[];
@@ -39,7 +39,7 @@ export interface Category {
   name: string;
   label: string;
 }
-export interface StratNumbers {
+export interface StartNumbers {
   id: number;
   name: string;
 }
@@ -48,7 +48,7 @@ export interface SideBar {
   dataSidebar: {
     mobile_networks: MobileNetwork[];
     category: Category[];
-    strat_numbers: StratNumbers[];
+    start_numbers: StartNumbers[];
   };
   priceOptions: {
     value: string;

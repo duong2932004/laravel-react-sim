@@ -42,5 +42,7 @@ export interface NavigationUrl {
   mobile_network_name?: string;
   start_number_name?: string;
   category_label?: string;
+  price_value?: string;
+  key_word?: string;
   [key: string]: string | undefined;
 }

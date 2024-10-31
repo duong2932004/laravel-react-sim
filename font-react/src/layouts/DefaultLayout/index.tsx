@@ -30,7 +30,7 @@ function DefaultLayout({ children }: ChildrenDefaultLayoutITF) {
   const [sidebar, setSidebar] = useState<SidebarResult>({
     mobile_networks: [],
     category: [],
-    strat_numbers: [],
+    start_numbers: [],
   });
   const [loading, setLoading] = useState(true);
 

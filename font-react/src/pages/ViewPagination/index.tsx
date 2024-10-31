@@ -4,8 +4,11 @@ import {
   PaginationPage,
   PaginationStartNumber,
   PaginationCategory,
+  PaginationPrice,
+  PaginationKeyWord,
 } from "@/services/ViewPagination";
-import { useParams, useNavigate } from "react-router-dom";
+import NoData from "@/components/Error/404";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import classNames from "classnames/bind";
 import styles from "./ViewMore.module.css";
 import { MobileNetwork, NavigationUrl } from "@/interface/ViewPagination";
@@ -14,46 +17,114 @@ import { FormatSimNumber } from "@/utils/FormatSimNumber";
 import image404 from "@/assets/img/404.jpg";
 import config from "@/config";
 import { usePreviousPath } from "@/contexts/PreviousPathContext";
+import Err500 from "@/components/Error/500";
 
 const cx = classNames.bind(styles);
 
 export default function ViewPagination() {
   const { previousPath } = usePreviousPath();
-
-  const { mobile_network_name, start_number_name, category_label } =
-    useParams<NavigationUrl>();
+  const [searchParams] = useSearchParams();
+  const page = searchParams.get("page") || "1";
+  const {
+    mobile_network_name,
+    start_number_name,
+    category_label,
+    price_value,
+    key_word,
+  } = useParams<NavigationUrl>();
   const [dataPagination, setDataPagination] = useState<MobileNetwork>();
   const [title, setTitle] = useState<string | undefined>();
   const navigate = useNavigate();
+  const [hasError, setHasError] = useState(false);
 
   useEffect(() => {
     const fetchAPI = async () => {
       try {
         if (mobile_network_name) {
-          const response = await PaginationMobileNetwork(mobile_network_name);
+          const response = await PaginationMobileNetwork(
+            mobile_network_name,
+            page
+          );
           setDataPagination(response.data);
           setTitle(mobile_network_name);
         } else if (start_number_name) {
-          const response = await PaginationStartNumber(start_number_name);
+          const response = await PaginationStartNumber(start_number_name, page);
           setDataPagination(response.data);
           setTitle(start_number_name);
         } else if (category_label) {
-          const response = await PaginationCategory(category_label);
+          const response = await PaginationCategory(category_label, page);
           setDataPagination(response.data);
           setTitle(response.data.category_name);
+        } else if (price_value) {
+          const [min, max] = price_value.split("-").map(Number);
+          const response = await PaginationPrice(price_value, page);
+          setDataPagination(response.data);
+          setTitle(
+            min.toLocaleString("vn") +
+              "vnd" +
+              " - " +
+              max.toLocaleString("vn") +
+              "vnd"
+          );
+        } else if (key_word) {
+          const lastDigits = key_word.slice(-3);
+          const valueParam =
+            lastDigits.length === 3 ? "Sim tam hoa " : "Sim tứ quý ";
+
+          const response = await PaginationKeyWord(lastDigits, page);
+          setDataPagination(response.data);
+          setTitle(valueParam + lastDigits);
         } else {
-          console.error("No valid parameter provided");
+          console.log("đường dẫn");
+
+          setHasError(true);
         }
-      } catch (error) {
-        console.error("Error fetching data:", error);
+      } catch (e) {
+        console.log(e);
+
+        setHasError(true);
       }
     };
 
     fetchAPI();
-  }, [mobile_network_name, start_number_name, category_label]);
+  }, [
+    mobile_network_name,
+    start_number_name,
+    category_label,
+    page,
+    price_value,
+    key_word,
+  ]);
+
+  const handleProductClick = (number: string) => {
+    navigate(config.routes.routes.detail(number));
+  };
 
   const handleBtnPagination = async (url: string) => {
     try {
+      const urlObject = new URL(url);
+      let pageNumber = urlObject.searchParams.get("page");
+
+      if (!pageNumber) {
+        pageNumber = "1";
+      }
+
+      if (mobile_network_name) {
+        navigate(
+          config.routes.routes.mobile_network(mobile_network_name, pageNumber)
+        );
+      } else if (start_number_name) {
+        navigate(
+          config.routes.routes.start_number(start_number_name, pageNumber)
+        );
+      } else if (category_label) {
+        navigate(config.routes.routes.category(category_label, pageNumber));
+      } else if (price_value) {
+        navigate(config.routes.routes.price(price_value, pageNumber));
+      } else if (key_word) {
+        navigate(config.routes.routes.key_word(key_word, pageNumber));
+      }
+
       const result = await PaginationPage(url);
       setDataPagination(result.data);
       window.scrollTo({
@@ -63,10 +134,6 @@ export default function ViewPagination() {
     } catch (error) {
       console.error("Error fetching data:", error);
     }
-  };
-
-  const handleProductClick = (number: string) => {
-    navigate(config.routes.routes.detail(number));
   };
 
   const renderPaginationButtons = () => {
@@ -145,6 +212,8 @@ export default function ViewPagination() {
     );
   };
 
+  if (hasError) return <Err500 />;
+
   return (
     <div className={cx("wrapper")}>
       {dataPagination ? (
@@ -168,31 +237,36 @@ export default function ViewPagination() {
             </em>
           </div>
           <Filter />
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 w-full mt-2">
-            {dataPagination.products.data.map((product, index) => {
-              const networkImage =
-                dataPagination.mobile_networks.find(
-                  (img) => img.id === product.mobile_networks_id
-                )?.image || image404;
-              return (
-                <div
-                  key={index}
-                  onClick={() => handleProductClick(product.number)}
-                  className="cursor-pointer"
-                >
-                  <div className="font-normal p-3 rounded border hover:border-red-600">
-                    <img src={networkImage} alt="" className="w-15 h-7" />
-                    <h4 className="font-medium text-xl">
-                      {FormatSimNumber(product.number.toString())}
-                    </h4>
-                    <p className="text-green-700 font-normal">
-                      {product.price.toLocaleString("vn")} Đ
-                    </p>
+          {dataPagination.products.data.length > 0 ? (
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 w-full mt-2">
+              {dataPagination.products.data.map((product, index) => {
+                const networkImage =
+                  dataPagination.mobile_networks.find(
+                    (img) => img.id === product.mobile_networks_id
+                  )?.image || image404;
+                return (
+                  <div
+                    key={index}
+                    onClick={() => handleProductClick(product.number)}
+                    className="cursor-pointer"
+                  >
+                    <div className="font-normal p-3 rounded border hover:border-red-600">
+                      <img src={networkImage} alt="" className="w-15 h-7" />
+                      <h4 className="font-medium text-xl">
+                        {FormatSimNumber(product.number.toString())}
+                      </h4>
+                      <p className="text-green-700 font-normal">
+                        {product.price.toLocaleString("vn")} Đ
+                      </p>
+                    </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          ) : (
+            <NoData />
+          )}
+
           <div className="mt-2 pagination flex justify-center items-center">
             {renderPaginationButtons()}
           </div>

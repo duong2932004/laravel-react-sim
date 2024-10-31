@@ -8,16 +8,19 @@ import image404 from "@/assets/img/404.jpg";
 import { FormatSimNumber } from "@/utils/FormatSimNumber";
 import { Link } from "react-router-dom";
 import Filter from "@/components/Filter";
+import { useNavigation } from "@/utils/Navigation";
+import Err500 from "@/components/Error/500";
 const cx = classNames.bind(styles);
 
 function Home() {
+  const { NavigateMobileNetwork } = useNavigation();
   const [dataLoadPage, setDataLoadPage] = useState<LoadPageResult>({
     mobile_networks: [],
     products: [],
     category: [],
     strat_numbers: [],
   });
-
+  const [hasError, setHasError] = useState(false);
   useEffect(() => {
     const fetchAPI = async () => {
       try {
@@ -25,13 +28,17 @@ function Home() {
         if (result.data.status === 200) {
           const data: LoadPageResult = result.data.data;
           setDataLoadPage(data);
+        } else if (result.data.status === 500) {
+          setHasError(true);
         }
-      } catch (err) {
-        console.log(err);
+      } catch {
+        setHasError(true);
       }
     };
     fetchAPI();
   }, []);
+
+  if (hasError) return <Err500 />;
 
   return (
     <div className={cx("wrapper")}>
@@ -69,14 +76,16 @@ function Home() {
                 </div>
                 <br />
                 <div className="text-end">
-                  <Link
-                    to={`/sim/${pro.mobile_network_name}`}
+                  <button
+                    onClick={() => {
+                      NavigateMobileNetwork(pro.mobile_network_name);
+                    }}
                     className={`${cx(
                       "btn-more"
                     )} px-4 py-3 bg-red-700 mt-2 rounded-2xl text-white font-normal`}
                   >
                     Xem thêm {pro.mobile_network_name}
-                  </Link>
+                  </button>
                 </div>
               </div>
             </div>

@@ -4,29 +4,34 @@ import { SideBar } from "@/interface/PhoneNumber";
 import { useNavigation } from "@/utils/Navigation";
 const cx = classNames.bind(styles);
 function Sidebar(props: SideBar) {
-  const { NavigateMobileNetwork, NavigateStartNumber, NavigateCategory } =
-    useNavigation();
+  const {
+    NavigateMobileNetwork,
+    NavigateStartNumber,
+    NavigateCategory,
+    NavigatePrice,
+    NavigateKeyWord,
+  } = useNavigation();
   const popular_keywords = [
-    "Sim Tứ Quý 9",
-    "Sim Tam Hoa 0",
-    "Sim Tam Hoa 5",
-    "Sim Tứ Quý 0",
-    "Sim Tam Hoa 1",
-    "Sim Tam Hoa 2",
-    "Sim Tam Hoa 3",
-    "Sim Tứ Quý 8",
-    "Sim Tam Hoa 4",
-    "Sim Tam Hoa 7",
-    "Sim Tứ Quý 1",
-    "Sim Tứ Quý 7",
-    "Sim Tam Hoa 9",
-    "Sim Tứ Quý 2",
-    "Sim Tứ Quý 6",
-    "Sim Tứ Quý 3",
-    "Sim Tứ Quý 5",
-    "Sim Tam Hoa 8",
-    "Sim Tứ Quý 4",
-    "Sim Tam Hoa 6",
+    { name: "Sim Tứ Quý 9", value: "9999" },
+    { name: "Sim Tam Hoa 0", value: "000" },
+    { name: "Sim Tam Hoa 5", value: "555" },
+    { name: "Sim Tứ Quý 0", value: "0000" },
+    { name: "Sim Tam Hoa 1", value: "111" },
+    { name: "Sim Tam Hoa 2", value: "222" },
+    { name: "Sim Tam Hoa 3", value: "333" },
+    { name: "Sim Tứ Quý 8", value: "8888" },
+    { name: "Sim Tam Hoa 4", value: "444" },
+    { name: "Sim Tam Hoa 7", value: "777" },
+    { name: "Sim Tứ Quý 1", value: "1111" },
+    { name: "Sim Tứ Quý 7", value: "7777" },
+    { name: "Sim Tam Hoa 9", value: "999" },
+    { name: "Sim Tứ Quý 2", value: "2222" },
+    { name: "Sim Tứ Quý 6", value: "6666" },
+    { name: "Sim Tứ Quý 3", value: "3333" },
+    { name: "Sim Tứ Quý 5", value: "5555" },
+    { name: "Sim Tam Hoa 8", value: "888" },
+    { name: "Sim Tứ Quý 4", value: "4444" },
+    { name: "Sim Tam Hoa 6", value: "666" },
   ];
 
   return (
@@ -46,7 +51,7 @@ function Sidebar(props: SideBar) {
         })}
       </div>
       <div className="grid grid-cols-5 gap-2">
-        {props.dataSidebar.strat_numbers.map((value) => {
+        {props.dataSidebar.start_numbers.map((value) => {
           return (
             <button
               onClick={() => NavigateStartNumber(value.name)}
@@ -64,7 +69,7 @@ function Sidebar(props: SideBar) {
           return (
             <button
               key={index}
-              value={value.value}
+              onClick={() => NavigatePrice(value.value)}
               className="mr-1 mb-2 p-1 bg-gray-200 border rounded hover:border-red-500"
             >
               {value.label}
@@ -91,10 +96,11 @@ function Sidebar(props: SideBar) {
         {popular_keywords.map((value, index) => {
           return (
             <button
+              onClick={() => NavigateKeyWord(value.value)}
               key={index}
               className="mr-1 mb-2 p-1 bg-gray-200 border rounded hover:border-red-500"
             >
-              {value}
+              {value.name}
             </button>
           );
         })}

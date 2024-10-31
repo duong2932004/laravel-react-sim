@@ -8,9 +8,8 @@ use App\Models\Product;
 use App\Models\Product_category;
 use App\Models\Start_number;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Storage;
-use function Laravel\Prompts\error;
-
 class ProductController extends Controller
 {
     public function index()
@@ -147,41 +146,59 @@ class ProductController extends Controller
             ]);
         }
     }
-    public  function sidebarLoadPage()
+
+    public function sidebarLoadPage()
     {
         try {
-            $data_mobile_networks = [];
-            $categories = Category::query()->select('id', 'name','label')->get();
-            $start_number = Start_number::query()->select('id', 'name')->get();
-            $mobile_networks = Mobile_networks::query()->select('id', 'name', 'image')->get();
-            foreach ($mobile_networks as $item) {
-                $data_mobile_networks[] = [
-                    'id' => $item->id,
-                    'name' => $item->name,
-                    'image' => Storage::url($item->image),
-                ];
+            // Kiểm tra xem dữ liệu đã có trong Redis chưa
+            $data = Redis::get('sidebar_data');
+
+            // Nếu không có dữ liệu trong Redis, thực hiện truy vấn và lưu vào Redis
+            if (!$data) {
+                $data_mobile_networks = [];
+
+                $categories = Category::query()->select('id', 'name', 'label')->get();
+                $start_number = Start_number::query()->select('id', 'name')->get();
+                $mobile_networks = Mobile_networks::query()->select('id', 'name', 'image')->get();
+
+                foreach ($mobile_networks as $item) {
+                    $data_mobile_networks[] = [
+                        'id' => $item->id,
+                        'name' => $item->name,
+                        'image' => Storage::url($item->image),
+                    ];
+                }
+
+                // Lưu dữ liệu vào Redis với thời gian sống 60 giây
+                $data = json_encode([
+                    'category' => $categories,
+                    'start_numbers' => $start_number,
+                    'mobile_networks' => $data_mobile_networks,
+                ]);
+                Redis::setex('sidebar_data', 60, $data);
+            } else {
+                // Nếu dữ liệu đã có trong Redis, giải mã dữ liệu
+                $data = json_decode($data, true);
             }
+
             return response()->json([
                 'success' => true,
                 'status' => 200,
-                'data' => [
-                    'category' => $categories,
-                    'strat_numbers' => $start_number,
-                    'mobile_networks' => $data_mobile_networks,
-                ],
+                'data' => $data,
                 'warning' => '',
                 'error' => ''
             ]);
-        }catch (\Exception $e){
+        } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'status' => '500',
+                'status' => 500,
                 'data' => [],
                 'warning' => 'Đã xảy ra lỗi không xác định',
                 'error' => $e->getMessage(),
             ]);
         }
     }
+
     public function detailPhoneNumber($number)
     {
         try {
@@ -230,9 +247,7 @@ class ProductController extends Controller
                     'start_number_id',
                     'mobile_networks_id',
                     'number',
-                    'price',
-                    'quantity',
-                    'describe')
+                    'price')
                 ->paginate(39)
             ;
             $mobile_networks = Mobile_networks::query()->select('id', 'name', 'image')->get();
@@ -276,9 +291,8 @@ class ProductController extends Controller
                     'start_number_id',
                     'mobile_networks_id',
                     'number',
-                    'price',
-                    'quantity',
-                    'describe')
+                    'price'
+                )
                 ->paginate(39)
             ;
             $mobile_networks = Mobile_networks::query()->select('id', 'name', 'image')->get();
@@ -334,7 +348,7 @@ class ProductController extends Controller
             $products = Product::query()
                 ->whereIn('id', $product_ids)
                 ->where('quantity', '>', 0)
-                ->select('id', 'start_number_id', 'mobile_networks_id', 'number', 'price', 'quantity', 'describe')
+                ->select('id', 'start_number_id', 'mobile_networks_id', 'number', 'price')
                 ->paginate(39);
 
             $mobile_networks = Mobile_networks::query()->select('id', 'name', 'image')->get();
@@ -367,6 +381,126 @@ class ProductController extends Controller
             ]);
         }
     }
+    public function getOneTypePrice($priceRange)
+    {
+        try {
+            $data_mobile_networks = [];
 
+            $priceBounds = explode('-', $priceRange);
 
+            if (count($priceBounds) !== 2) {
+                return response()->json([
+                    'success' => false,
+                    'status' => 400,
+                    'data' => [],
+                    'warning' => 'Giá trị của price không hợp lệ, yêu cầu định dạng min-max',
+                    'error' => ''
+                ]);
+            }
+
+            $minPrice = (float)$priceBounds[0];
+            $maxPrice = (float)$priceBounds[1];
+
+            $products = Product::query()
+                ->whereBetween('price', [$minPrice, $maxPrice])
+                ->where('quantity', '>', 0)
+                ->select(
+                    'id',
+                    'start_number_id',
+                    'mobile_networks_id',
+                    'number',
+                    'price',
+                )
+                ->paginate(39);
+
+            $mobile_networks = Mobile_networks::query()->select('id', 'name', 'image')->get();
+            foreach ($mobile_networks as $item) {
+                $data_mobile_networks[] = [
+                    'id' => $item->id,
+                    'name' => $item->name,
+                    'image' => Storage::url($item->image),
+                ];
+            }
+
+            return response()->json([
+                'success' => true,
+                'status' => 200,
+                'data' => [
+                    'products' => $products,
+                    'mobile_networks' => $data_mobile_networks,
+
+                ],
+                'warning' => '',
+                'error' => ''
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'status' => 500,
+                'data' => [],
+                'warning' => 'Đã xảy ra lỗi không xác định',
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+    public function getOneTypeKeyWord($key_word)
+    {
+        try {
+            $data_mobile_networks = [];
+
+            $last_digits = (strlen($key_word) === 3) ? $key_word : substr($key_word, -4);
+
+            // Sử dụng 'LIKE' để so sánh số cuối
+            $products = Product::query()
+                ->where('number', 'LIKE', '%' . $last_digits)
+                ->where('quantity', '>', 0)
+                ->select(
+                    'id',
+                    'start_number_id',
+                    'mobile_networks_id',
+                    'number',
+                    'price',
+                )
+                ->paginate(39);
+
+            $mobile_networks = Mobile_networks::query()->select('id', 'name', 'image')->get();
+            foreach ($mobile_networks as $item) {
+                $data_mobile_networks[] = [
+                    'id' => $item->id,
+                    'name' => $item->name,
+                    'image' => Storage::url($item->image),
+                ];
+            }
+
+            return response()->json([
+                'success' => true,
+                'status' => 200,
+                'data' => [
+                    'products' => $products,
+                    'mobile_networks' => $data_mobile_networks,
+                ],
+                'warning' => '',
+                'error' => ''
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'status' => 500,
+                'data' => [],
+                'warning' => 'Đã xảy ra lỗi không xác định',
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+
+    private function Redisss()
+    {
+        try {
+            Redis::ping();
+            return true;
+        } catch (\Exception $e) {
+
+            return false;
+        }
+    }
 }

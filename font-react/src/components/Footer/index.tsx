@@ -15,7 +15,7 @@ function Footer() {
         <div className={cx("ft-1")}>
           <h3 className="font-bold">
             <div className="title">CÔNG TY CỔ PHẦN SIM.VN</div>
-            <div className="contact flex items-center gap-2 p-2 border border-3 rounded-2xl mt-2">
+            <div className="contact flex items-center gap-2 p-2 w-6/12 border border-3 rounded-2xl mt-2">
               <div className="contact1">
                 <FiPhone color="red" />
               </div>
@@ -75,10 +75,6 @@ function Footer() {
             />
           </div>
           <div className="font-bold title">CHỨNG NHẬN KẾT NỐI</div>
-          <img
-            src="http://online.gov.vn/Home/WebDetails/57050"
-            alt="Chứng nhận kết nối"
-          />
         </div>
       </footer>
     </>

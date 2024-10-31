@@ -32,4 +32,6 @@ Route::prefix('/pagination')->group(function (){
     Route::get('/mobileNetworks/{mobile_networks_name}',[ProductController::class,'getOneMobileNetworks']);
     Route::get('/startNumbers/{start_number_name}',[ProductController::class,'getOneStartNumber']);
     Route::get('/category/{category_label}',[ProductController::class,'getOneTypeCategory']);
+    Route::get('/price/{price}',[ProductController::class,'getOneTypePrice']);
+    Route::get('/keyWord/{keyWord}',[ProductController::class,'getOneTypeKeyWord']);
 });

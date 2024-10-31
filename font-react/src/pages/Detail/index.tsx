@@ -12,7 +12,7 @@ import { FormatSimNumber } from "@/utils/FormatSimNumber";
 function Detail() {
   const navigate = useNavigate();
 
-  const [moreDoc, setMoreDoc] = useState(true);
+  const [moreDoc, setMoreDoc] = useState(false);
   const { number } = useParams<{ number: string }>();
   const [phoneNumber, setPhoneNumber] = useState<DetailITF>();
   useEffect(() => {
@@ -103,32 +103,18 @@ function Detail() {
                 <h1 className="font-bold text-2xl">Miêu tả</h1>
               </div>
 
-              {!moreDoc ? (
-                <div className="text-center">
-                  <button
-                    className={`${cx(
-                      "btn-submit"
-                    )} px-2 py-1 bg-gray-200 rounded text-white`}
-                    onClick={() => setMoreDoc(true)}
-                  >
-                    Đọc
-                  </button>
-                </div>
-              ) : (
-                <div>
-                  <p>{phoneNumber.describe}</p>
-                  <div className="text-center">
-                    <button
-                      className={`${cx(
-                        "btn-submit"
-                      )} px-2 py-1 bg-gray-200 rounded text-white`}
-                      onClick={() => setMoreDoc(false)}
-                    >
-                      Đóng
-                    </button>
-                  </div>
-                </div>
-              )}
+              <div className={moreDoc ? "" : cx("text-clamp")}>
+                <p>{phoneNumber.describe}</p>
+              </div>
+
+              <div className="text-center">
+                <button
+                  className="px-2 py-1 rounded text-green-500"
+                  onClick={() => setMoreDoc(!moreDoc)}
+                >
+                  {moreDoc ? "Thu gọn" : "Xem thêm"}
+                </button>
+              </div>
             </div>
           </div>
           <h1 className="font-bold text-2xl mb-2">Đặt mua sim</h1>

@@ -16,11 +16,19 @@ const publicRoutes: RouteITF[] = [
     component: ViewPagination,
   },
   {
-    path: config.routes.routes.strat_number(":start_number_name"),
+    path: config.routes.routes.start_number(":start_number_name"),
     component: ViewPagination,
   },
   {
     path: config.routes.routes.category(":category_label"),
+    component: ViewPagination,
+  },
+  {
+    path: config.routes.routes.price(":price_value"),
+    component: ViewPagination,
+  },
+  {
+    path: config.routes.routes.key_word(":key_word"),
     component: ViewPagination,
   },
 ];
@@ -28,32 +36,3 @@ const publicRoutes: RouteITF[] = [
 const privateRoutes: RouteITF[] = [];
 
 export { publicRoutes, privateRoutes };
-
-// import config from "@/config";
-// import { RouteITF } from "@/interface/Route";
-
-// // Pages
-// import Home from "@/pages/Home";
-// import Detail from "@/pages/Detail";
-// import ViewPagination from "@/pages/ViewPagination";
-// // import Introduce from "@/pages/Introduce";
-// // import HeaderOnly from "@/layouts/HeaderOnly";
-// // import Login from "@/pages/Login";
-
-// // Public routes
-// const publicRoutes: RouteITF[] = [
-//   { path: config.routes.home, component: Home },
-//   { path: config.routes.detail, component: Detail },
-//   { path: config.routes.mobile_network, component: ViewPagination },
-//   // { path: config.routes.introduce, component: Introduce, layout: HeaderOnly },
-//   // { path: config.routes.login, component: Login, layout: null },
-//   // {
-//   //   path: config.routes.contributors,
-//   //   component: Contributors,
-//   //   layout: HeaderOnly,
-//   // },
-// ];
-
-// const privateRoutes: RouteITF[] = [];
-
-// export { publicRoutes, privateRoutes };

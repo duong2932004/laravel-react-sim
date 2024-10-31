@@ -20,7 +20,7 @@ return new class extends Migration
             $table->string('number')->unique();
             $table->bigInteger('price');
             $table->integer('quantity');
-            $table->string('describe');
+            $table->longText('describe');
             $table->timestamps();
             $table->softDeletes();
         });

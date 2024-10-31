@@ -5,27 +5,37 @@ export const useNavigation = () => {
   const navigate = useNavigate();
 
   // điều hướng đơn
-  const NavigateMobileNetwork = (name: string) => {
-    navigate(config.routes.routes.mobile_network(name));
+  const NavigateMobileNetwork = (value_query: string) => {
+    navigate(config.routes.routes.mobile_network(value_query));
   };
-  const NavigateStartNumber = (name: string) => {
-    navigate(config.routes.routes.strat_number(name));
+  const NavigateStartNumber = (value_query: string) => {
+    navigate(config.routes.routes.start_number(value_query));
   };
-  const NavigateCategory = (name: string) => {
-    navigate(config.routes.routes.category(name));
+  const NavigateCategory = (value_query: string) => {
+    navigate(config.routes.routes.category(value_query));
+  };
+  const NavigatePrice = (value_query: string) => {
+    navigate(config.routes.routes.price(value_query));
+  };
+  const NavigateKeyWord = (value_query: string) => {
+    navigate(config.routes.routes.key_word(value_query));
   };
 
   // điều hướng chung
   const navigateTo = (
     type: "mobileNetwork" | "startNumber" | "category",
-    name: string
+    value_query: string
   ) => {
     if (type === "mobileNetwork") {
-      NavigateMobileNetwork(name);
+      NavigateMobileNetwork(value_query);
     } else if (type === "startNumber") {
-      NavigateStartNumber(name);
+      NavigateStartNumber(value_query);
     } else if (type === "category") {
-      NavigateCategory(name);
+      NavigateCategory(value_query);
+    } else if (type === "price") {
+      NavigatePrice(value_query);
+    } else if (type === "key_word") {
+      NavigateKeyWord(value_query);
     }
   };
 
@@ -33,6 +43,8 @@ export const useNavigation = () => {
     NavigateMobileNetwork,
     NavigateStartNumber,
     NavigateCategory,
+    NavigatePrice,
+    NavigateKeyWord,
     navigateTo,
   };
 };

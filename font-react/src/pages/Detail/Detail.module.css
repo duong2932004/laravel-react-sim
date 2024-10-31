@@ -5,3 +5,25 @@
     rgb(254, 128, 89) 99.68%
   ) !important;
 }
+.text-clamp {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+
+  -moz-box-orient: vertical;
+  -ms-line-clamp: 3;
+  box-orient: vertical;
+  line-clamp: 3;
+  position: relative;
+}
+
+.text-clamp::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1.5em;
+  background: linear-gradient(to bottom, transparent, white);
+}
