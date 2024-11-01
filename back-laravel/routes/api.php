@@ -24,6 +24,7 @@ Route::get('/detail/{number}', [ProductController::class, 'detailPhoneNumber']);
 
 
 //load trang web
+Route::get('/search-value', [ProductController::class, 'searchValue']);
 Route::get('/get-value-load-page', [ProductController::class, 'loadPage']);
 Route::get('/value-sidebar-load-page', [ProductController::class, 'sidebarLoadPage']);
 

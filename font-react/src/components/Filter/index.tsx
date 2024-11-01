@@ -12,7 +12,7 @@ function Filter() {
   const [sidebar, setSidebar] = useState<SidebarResult>({
     mobile_networks: [],
     category: [],
-    strat_numbers: [],
+    start_numbers: [],
   });
   useEffect(() => {
     const fetchAPI = async () => {
@@ -89,7 +89,7 @@ function Filter() {
                 </div>
                 <hr />
                 <h4 className="font-medium my-2">Đầu số</h4>
-                {sidebar.strat_numbers.map((number) => (
+                {sidebar.start_numbers.map((number) => (
                   <button
                     key={number.id}
                     className="mr-1 mb-2 px-3 py-1 border rounded hover:border-red-500"

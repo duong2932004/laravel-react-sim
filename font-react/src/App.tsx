@@ -7,40 +7,45 @@ import { FC } from "react";
 import { ChildrenITF } from "@/interface/Children";
 import ScrollToTop from "@/components/ScrollToTop";
 import { PreviousPathProvider } from "@/contexts/PreviousPathContext";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 function App() {
+  const queryClient = new QueryClient();
+
   return (
-    <Router>
-      <PreviousPathProvider>
-        <ScrollToTop />
-        <div className="App">
-          <Routes>
-            {publicRoutes.map((route, index) => {
-              const Page = route.component;
-              let Layout: FC<ChildrenITF> = LayoutMain;
+    <QueryClientProvider client={queryClient}>
+      <Router>
+        <PreviousPathProvider>
+          <ScrollToTop />
+          <div className="App">
+            <Routes>
+              {publicRoutes.map((route, index) => {
+                const Page = route.component;
+                let Layout: FC<ChildrenITF> = LayoutMain;
 
-              if (route.layout) {
-                Layout = route.layout;
-              } else if (route.layout === null) {
-                Layout = Fragment;
-              }
+                if (route.layout) {
+                  Layout = route.layout;
+                } else if (route.layout === null) {
+                  Layout = Fragment;
+                }
 
-              return (
-                <Route
-                  key={index}
-                  path={route.path}
-                  element={
-                    <Layout>
-                      <Page />
-                    </Layout>
-                  }
-                />
-              );
-            })}
-          </Routes>
-        </div>
-      </PreviousPathProvider>
-    </Router>
+                return (
+                  <Route
+                    key={index}
+                    path={route.path}
+                    element={
+                      <Layout>
+                        <Page />
+                      </Layout>
+                    }
+                  />
+                );
+              })}
+            </Routes>
+          </div>
+        </PreviousPathProvider>
+      </Router>
+    </QueryClientProvider>
   );
 }
 

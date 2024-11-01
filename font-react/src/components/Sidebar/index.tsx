@@ -38,58 +38,72 @@ function Sidebar(props: SideBar) {
     <div className={cx("wrapper")}>
       <h2 className="font-medium mb-2">SIM THEO MẠNG</h2>
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-2">
-        {props.dataSidebar.mobile_networks.map((value) => {
-          return (
-            <button
-              onClick={() => NavigateMobileNetwork(value.name)}
-              key={value.id}
-              className="mr-1 mb-2 px-3 py-2 bg-gray-200 border rounded hover:border-red-500"
-            >
-              <img src={value.image} alt="" className="bg-cover w-full h-7" />
-            </button>
-          );
-        })}
+        {props.dataSidebar.mobile_networks &&
+        props.dataSidebar.mobile_networks.length > 0
+          ? props.dataSidebar.mobile_networks.map((value) => {
+              return (
+                <button
+                  onClick={() => NavigateMobileNetwork(value.name)}
+                  key={value.id}
+                  className="mr-1 mb-2 px-3 py-2 bg-gray-200 border rounded hover:border-red-500"
+                >
+                  <img
+                    src={value.image}
+                    alt=""
+                    className="bg-cover w-full h-7"
+                  />
+                </button>
+              );
+            })
+          : "Đảng tải"}
       </div>
       <div className="grid grid-cols-5 gap-2">
-        {props.dataSidebar.start_numbers.map((value) => {
-          return (
-            <button
-              onClick={() => NavigateStartNumber(value.name)}
-              key={value.id}
-              className="mr-1 mb-2 px-3 py-2 bg-gray-200 border rounded hover:border-red-500"
-            >
-              {value.name}
-            </button>
-          );
-        })}
+        {props.dataSidebar.start_numbers &&
+        props.dataSidebar.start_numbers.length > 0
+          ? props.dataSidebar.start_numbers.map((value) => {
+              return (
+                <button
+                  onClick={() => NavigateStartNumber(value.name)}
+                  key={value.id}
+                  className="mr-1 mb-2 px-3 py-2 bg-gray-200 border rounded hover:border-red-500"
+                >
+                  {value.name}
+                </button>
+              );
+            })
+          : "Đang tải dữ liệu"}
       </div>
       <h2 className="font-medium mb-2">SIM THEO GIÁ</h2>
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-2">
-        {props.priceOptions.map((value, index) => {
-          return (
-            <button
-              key={index}
-              onClick={() => NavigatePrice(value.value)}
-              className="mr-1 mb-2 p-1 bg-gray-200 border rounded hover:border-red-500"
-            >
-              {value.label}
-            </button>
-          );
-        })}
+        {props.priceOptions && props.priceOptions.length > 0
+          ? props.priceOptions.map((value, index) => {
+              return (
+                <button
+                  key={index}
+                  onClick={() => NavigatePrice(value.value)}
+                  className="mr-1 mb-2 p-1 bg-gray-200 border rounded hover:border-red-500"
+                >
+                  {value.label}
+                </button>
+              );
+            })
+          : "đang tải dữ liệu"}
       </div>
       <h2 className="font-medium mb-2">LOẠI SIM</h2>
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-2">
-        {props.dataSidebar.category.map((value) => {
-          return (
-            <button
-              onClick={() => NavigateCategory(value.label)}
-              key={value.id}
-              className="mr-1 mb-2 p-1 bg-gray-200 border rounded hover:border-red-500"
-            >
-              {value.name}
-            </button>
-          );
-        })}
+        {props.dataSidebar.category && props.dataSidebar.category.length > 0
+          ? props.dataSidebar.category.map((value) => {
+              return (
+                <button
+                  onClick={() => NavigateCategory(value.label)}
+                  key={value.id}
+                  className="mr-1 mb-2 p-1 bg-gray-200 border rounded hover:border-red-500"
+                >
+                  {value.name}
+                </button>
+              );
+            })
+          : "Đang tải dữ liệu..."}
       </div>
       <h2 className="font-medium mb-2">Các từ khóa phổ biến</h2>
       <div className="grid grid-cols-1 lg:grid-cols-2">

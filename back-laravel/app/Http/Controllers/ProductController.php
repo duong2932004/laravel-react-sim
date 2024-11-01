@@ -10,12 +10,39 @@ use App\Models\Start_number;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Storage;
+use function PHPSTORM_META\map;
+
 class ProductController extends Controller
 {
     public function index()
     {
-        $products = Product::all();
-        return response()->json($products);
+        try {
+            $data = Redis::get('project_sim:product:all-product');
+            if (!$data){
+                $products = Product::all();
+                $data = json_encode($products);
+                Redis::setex('project_sim:product:all-product',86400, $data);
+            }else{
+                $data = json_decode($data);
+            }
+            return response()->json([
+                'success' => true,
+                'status' => 200,
+                'data' => $data,
+                'message' => 'Successful Data Retrieval',
+                'error' => ''
+            ],200);
+
+        }catch (\Exception $e){
+            return response()->json([
+                'success' => true,
+                'status' => 200,
+                'data' => [],
+                'message' => 'Server error',
+                'error' => $e
+            ],500);
+        }
+
     }
 
     public function store(Request $request)
@@ -60,9 +87,46 @@ class ProductController extends Controller
         $product->delete();
         return response()->json(null, 204);
     }
+    public function searchValue()
+    {
+        try {
+            $data = Redis::get('project_sim:auto_load_page:search-value');
+            if (!$data){
+                $products = Product::query()->where('quantity', '>', 0)->get();
+                $filter_data = $products->map(function ($product) {
+                    return [
+                        'number' => $product->number,
+                        'mobile_network_name' => $product->mobile_network ? $product->mobile_network->name : 404,
+                    ];
+                });
+                $data = json_encode($filter_data);
+                Redis::setex('project_sim:auto_load_page:search-value',86400, $data);
+            }else{
+                $data = json_decode($data);
+            }
+            return response()->json([
+                'success' => true,
+                'status' => 200,
+                'data' => $data,
+                'message' => 'Successful Data Retrieval',
+                'error' => ''
+            ],200);
+
+        }catch (\Exception $e){
+            return response()->json([
+                'success' => true,
+                'status' => 200,
+                'data' => [],
+                'message' => 'Server error',
+                'error' => $e
+            ],500);
+        }
+
+    }
     public function search($number)
     {
         try {
+
             $products = Product::query()
                 ->where('number', 'LIKE', '%' . $number . '%')
                 ->limit(100)
@@ -80,7 +144,7 @@ class ProductController extends Controller
                 'success' => true,
                 'status' => 200,
                 'data' => $data,
-                'waning' => '',
+                'message' => '',
                 'error' => ''
             ]);
         }catch (\Exception $e){
@@ -88,7 +152,7 @@ class ProductController extends Controller
                 'success' => false,
                 'status' => '500',
                 'data' => [],
-                'warning' => 'Đã xảy ra lỗi không xác định',
+                'message' => 'Đã xảy ra lỗi không xác định',
                 'error' => $e->getMessage(),
             ]);
         }
@@ -96,44 +160,51 @@ class ProductController extends Controller
     public function loadPage()
     {
         try {
-            $dataProduct = [];
-            $data_mobile_networks = [];
-            $categories = Category::query()->select('id', 'name','label')->get();
-            $start_number = Start_number::query()->select('id', 'name')->get();
-            $mobile_networks = Mobile_networks::query()->select('id', 'name', 'image')->get();
+            $data = Redis::get('project_sim:auto_load_page:load-page');
+            if (!$data){
+                $dataProduct = [];
+                $data_mobile_networks = [];
+                $categories = Category::query()->select('id', 'name','label')->get();
+                $start_number = Start_number::query()->select('id', 'name')->get();
+                $mobile_networks = Mobile_networks::query()->select('id', 'name', 'image')->get();
 
-            foreach ($mobile_networks as $item) {
-                $data_mobile_networks[] = [
-                    'id' => $item->id,
-                    'name' => $item->name,
-                    'image' => Storage::url($item->image),
-                ];
-            }
+                foreach ($mobile_networks as $item) {
+                    $data_mobile_networks[] = [
+                        'id' => $item->id,
+                        'name' => $item->name,
+                        'image' => Storage::url($item->image),
+                    ];
+                }
+                foreach ($mobile_networks as $mobile_network) {
+                    $products = Product::query()
+                        ->where('mobile_networks_id', '=', $mobile_network->id)
+                        ->where('quantity', '>', 0)
+                        ->limit(12)
+                        ->get()
+                        ->makeHidden(['id', 'created_at', 'updated_at', 'deleted_at']);
 
-            foreach ($mobile_networks as $mobile_network) {
-                $products = Product::query()
-                    ->where('mobile_networks_id', '=', $mobile_network->id)
-                    ->where('quantity', '>', 0)
-                    ->limit(12)
-                    ->get()
-                    ->makeHidden(['id', 'created_at', 'updated_at', 'deleted_at']);
-
-                $dataProduct[] = [
-                    'mobile_network_name' => $mobile_network->name,
-                    'products' => $products,
-                ];
-            }
-
-            return response()->json([
-                'success' => true,
-                'status' => 200,
-                'data' => [
+                    $dataProduct[] = [
+                        'mobile_network_name' => $mobile_network->name,
+                        'products' => $products,
+                    ];
+                }
+                $data = json_encode([
                     'category' => $categories,
                     'strat_numbers' => $start_number,
                     'products' => $dataProduct,
                     'mobile_networks' => $data_mobile_networks,
-                ],
-                'warning' => '',
+                ]);
+                Redis::setex('project_sim:auto_load_page:load-page', 86400, $data);
+            }else{
+                $data = json_decode($data, true);
+            }
+
+
+            return response()->json([
+                'success' => true,
+                'status' => 200,
+                'data' => $data,
+                'message' => '',
                 'error' => ''
             ]);
         } catch (\Exception $e) {
@@ -141,7 +212,7 @@ class ProductController extends Controller
                 'success' => false,
                 'status' => '500',
                 'data' => [],
-                'warning' => 'Đã xảy ra lỗi không xác định',
+                'message' => 'Đã xảy ra lỗi không xác định',
                 'error' => $e->getMessage(),
             ]);
         }
@@ -151,7 +222,7 @@ class ProductController extends Controller
     {
         try {
             // Kiểm tra xem dữ liệu đã có trong Redis chưa
-            $data = Redis::get('sidebar_data');
+            $data = Redis::get('project_sim:auto_load_page:sidebar_data');
 
             // Nếu không có dữ liệu trong Redis, thực hiện truy vấn và lưu vào Redis
             if (!$data) {
@@ -175,7 +246,7 @@ class ProductController extends Controller
                     'start_numbers' => $start_number,
                     'mobile_networks' => $data_mobile_networks,
                 ]);
-                Redis::setex('sidebar_data', 60, $data);
+                Redis::setex('project_sim:auto_load_page:sidebar_data', 86400, $data);
             } else {
                 // Nếu dữ liệu đã có trong Redis, giải mã dữ liệu
                 $data = json_decode($data, true);
@@ -185,7 +256,7 @@ class ProductController extends Controller
                 'success' => true,
                 'status' => 200,
                 'data' => $data,
-                'warning' => '',
+                'message' => '',
                 'error' => ''
             ]);
         } catch (\Exception $e) {
@@ -193,7 +264,7 @@ class ProductController extends Controller
                 'success' => false,
                 'status' => 500,
                 'data' => [],
-                'warning' => 'Đã xảy ra lỗi không xác định',
+                'message' => 'Đã xảy ra lỗi không xác định',
                 'error' => $e->getMessage(),
             ]);
         }
@@ -220,8 +291,8 @@ class ProductController extends Controller
             return response()->json([
                 'success' => true,
                 'status' => 200,
-                'data' => $product,
-                'warning' => '',
+                'data' => [],
+                'message' => '',
                 'error' => ''
             ]);
         } catch (\Exception $e) {
@@ -229,7 +300,7 @@ class ProductController extends Controller
                 'success' => false,
                 'status' => 500,
                 'data' => [],
-                'warning' => 'Đã xảy ra lỗi không xác định',
+                'message' => 'Đã xảy ra lỗi không xác định',
                 'error' => $e->getMessage(),
             ]);
         }
@@ -265,7 +336,7 @@ class ProductController extends Controller
                     'products' => $products,
                     'mobile_networks' => $data_mobile_networks,
                 ],
-                'warning' => '',
+                'message' => '',
                 'error' => ''
             ]);
         } catch (\Exception $e) {
@@ -273,7 +344,7 @@ class ProductController extends Controller
                 'success' => false,
                 'status' => 500,
                 'data' => [],
-                'warning' => 'Đã xảy ra lỗi không xác định',
+                'message' => 'Đã xảy ra lỗi không xác định',
                 'error' => $e->getMessage(),
             ]);
         }
@@ -310,7 +381,7 @@ class ProductController extends Controller
                     'products' => $products,
                     'mobile_networks' => $data_mobile_networks,
                 ],
-                'warning' => '',
+                'message' => '',
                 'error' => ''
             ]);
         } catch (\Exception $e) {
@@ -318,7 +389,7 @@ class ProductController extends Controller
                 'success' => false,
                 'status' => 500,
                 'data' => [],
-                'warning' => 'Đã xảy ra lỗi không xác định',
+                'message' => 'Đã xảy ra lỗi không xác định',
                 'error' => $e->getMessage(),
             ]);
         }
@@ -335,7 +406,7 @@ class ProductController extends Controller
                     'success' => false,
                     'status' => 404,
                     'data' => [],
-                    'warning' => 'Không tìm thấy danh mục',
+                    'message' => 'Không tìm thấy danh mục',
                     'error' => '',
                 ]);
             }
@@ -368,7 +439,7 @@ class ProductController extends Controller
                     'mobile_networks' => $data_mobile_networks,
                     'category_name' => $data_query->name,
                 ],
-                'warning' => '',
+                'message' => '',
                 'error' => ''
             ]);
         } catch (\Exception $e) {
@@ -376,7 +447,7 @@ class ProductController extends Controller
                 'success' => false,
                 'status' => 500,
                 'data' => [],
-                'warning' => 'Đã xảy ra lỗi không xác định',
+                'message' => 'Đã xảy ra lỗi không xác định',
                 'error' => $e->getMessage(),
             ]);
         }
@@ -393,7 +464,7 @@ class ProductController extends Controller
                     'success' => false,
                     'status' => 400,
                     'data' => [],
-                    'warning' => 'Giá trị của price không hợp lệ, yêu cầu định dạng min-max',
+                    'message' => 'Giá trị của price không hợp lệ, yêu cầu định dạng min-max',
                     'error' => ''
                 ]);
             }
@@ -430,7 +501,7 @@ class ProductController extends Controller
                     'mobile_networks' => $data_mobile_networks,
 
                 ],
-                'warning' => '',
+                'message' => '',
                 'error' => ''
             ]);
         } catch (\Exception $e) {
@@ -438,7 +509,7 @@ class ProductController extends Controller
                 'success' => false,
                 'status' => 500,
                 'data' => [],
-                'warning' => 'Đã xảy ra lỗi không xác định',
+                'message' => 'Đã xảy ra lỗi không xác định',
                 'error' => $e->getMessage(),
             ]);
         }
@@ -479,7 +550,7 @@ class ProductController extends Controller
                     'products' => $products,
                     'mobile_networks' => $data_mobile_networks,
                 ],
-                'warning' => '',
+                'message' => '',
                 'error' => ''
             ]);
         } catch (\Exception $e) {
@@ -487,7 +558,7 @@ class ProductController extends Controller
                 'success' => false,
                 'status' => 500,
                 'data' => [],
-                'warning' => 'Đã xảy ra lỗi không xác định',
+                'message' => 'Đã xảy ra lỗi không xác định',
                 'error' => $e->getMessage(),
             ]);
         }

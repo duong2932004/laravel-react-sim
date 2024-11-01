@@ -5,8 +5,9 @@ import { ChildrenDefaultLayoutITF } from "@/interface/Children";
 import Footer from "@/components/Footer";
 import { SideBarLoading } from "@/services/Home";
 import Loading from "@/components/Loading";
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { SidebarResult } from "@/interface/PhoneNumber";
+
 const cx = classNames.bind(styles);
 
 function DefaultLayout({ children }: ChildrenDefaultLayoutITF) {
@@ -27,73 +28,88 @@ function DefaultLayout({ children }: ChildrenDefaultLayoutITF) {
     { value: "500000000-1000000000", label: "500 - 1 Tỷ" },
     { value: "1000000000-10000000000000", label: "> 1 Tỷ" },
   ];
-  const [sidebar, setSidebar] = useState<SidebarResult>({
-    mobile_networks: [],
-    category: [],
-    start_numbers: [],
-  });
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchAPI = async () => {
-      const value = await SideBarLoading();
-      if (value.data.status === 200) {
-        setSidebar(value.data.data);
-        setLoading(false);
-        console.log(value.data.data);
-      } else {
-        console.log("Failed to fetch sidebar data");
+  const {
+    data: sidebarData,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useQuery({
+    queryKey: ["sidebar"],
+    queryFn: async () => {
+      const response = await SideBarLoading();
+      if (response.data.status === 200) {
+        return response.data.data as SidebarResult;
       }
-    };
-    fetchAPI();
-  }, []);
+      throw new Error("Không thể tải dữ liệu sidebar");
+    },
+    staleTime: 5 * 60 * 1000,
+    retry: 3,
+  });
+
+  if (isLoading) {
+    return <Loading />;
+  }
+
+  if (isError) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4">
+        {error.message}
+      </div>
+    );
+  }
+
+  // Kiểm tra dữ liệu undefined
+  if (!sidebarData) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <p className="mb-4">Không tìm thấy dữ liệu sidebar.</p>
+        <button onClick={() => refetch()} className="w-full">
+          Tải lại
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className={cx("wrapper")}>
-      {!loading ? (
-        <>
-          <Header priceOptions={priceOptions} dataSidebar={sidebar} />
+      <Header priceOptions={priceOptions} dataSidebar={sidebarData} />
 
-          <main className="pt-28 md:pt-14 lg:pt-14 min-h-96 pb-10">
-            {/* Thanh navigation đầy đủ ở màn hình lớn */}
-            <div
-              className={`${cx("bottom-header")} hidden md:block h-max mb-2`}
-            >
-              <nav className="m-auto max-w-screen-lg">
-                <ul className="flex justify-between py-3 text-base">
-                  <li>
-                    <a className="hover:underline">Trang chủ</a>
-                  </li>
-                  <li>
-                    <a href="#" className="hover:underline">
-                      Giới thiệu
-                    </a>
-                  </li>
-                  <li>
-                    <a href="#" className="hover:underline">
-                      Tin tức
-                    </a>
-                  </li>
-                  <li>
-                    <a href="#" className="hover:underline">
-                      Sản phẩm
-                    </a>
-                  </li>
-                  <li>
-                    <a href="#" className="hover:underline">
-                      Liên hệ
-                    </a>
-                  </li>
-                </ul>
-              </nav>
-            </div>
-            <div>{children(sidebar, priceOptions)}</div>
-          </main>
-          <Footer />
-        </>
-      ) : (
-        <Loading />
-      )}
+      <main className="pt-28 md:pt-14 lg:pt-14 min-h-96 pb-10">
+        {/* Thanh navigation đầy đủ ở màn hình lớn */}
+        <div className={`${cx("bottom-header")} hidden md:block h-max mb-2`}>
+          <nav className="m-auto max-w-screen-lg">
+            <ul className="flex justify-between py-3 text-base">
+              <li>
+                <a className="hover:underline">Trang chủ</a>
+              </li>
+              <li>
+                <a href="#" className="hover:underline">
+                  Giới thiệu
+                </a>
+              </li>
+              <li>
+                <a href="#" className="hover:underline">
+                  Tin tức
+                </a>
+              </li>
+              <li>
+                <a href="#" className="hover:underline">
+                  Sản phẩm
+                </a>
+              </li>
+              <li>
+                <a href="#" className="hover:underline">
+                  Liên hệ
+                </a>
+              </li>
+            </ul>
+          </nav>
+        </div>
+        <div>{children(sidebarData, priceOptions)}</div>
+      </main>
+      <Footer />
     </div>
   );
 }

@@ -39,6 +39,7 @@ function Search() {
         const result = await searchGet(debouncedValue);
         if (result.status == 200) {
           setResult(result.data);
+          console.log(result.data);
         } else {
           setResult([]);
         }
@@ -93,7 +94,7 @@ function Search() {
           value={searchValue}
           type="text"
           placeholder="Search..."
-          className="w-full min-w-96 py-2 px-3 rounded-full focus:outline-none inline-flex items-center gap-x-1 text-sm font-semibold leading-6 text-gray-900"
+          className="w-full lg:min-w-96 py-2 px-3 rounded-full focus:outline-none inline-flex items-center gap-x-1 text-sm font-semibold leading-6 text-gray-900"
         />
 
         {!loading && searchValue && (
