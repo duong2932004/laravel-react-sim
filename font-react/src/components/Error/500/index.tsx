@@ -1,3 +1,4 @@
+import { memo } from "react";
 import classNames from "classnames/bind";
 import styles from "../Error.module.css";
 import imageError from "@/assets/img/error.png";
@@ -20,4 +21,4 @@ function Err500() {
   );
 }
 
-export default Err500;
+export default memo(Err500);

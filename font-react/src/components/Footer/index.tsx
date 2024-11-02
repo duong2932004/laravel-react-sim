@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { Link } from "react-router-dom";
 import { FiPhone } from "react-icons/fi";
 import classNames from "classnames/bind";
@@ -81,4 +82,4 @@ function Footer() {
   );
 }
 
-export default Footer;
+export default memo(Footer);

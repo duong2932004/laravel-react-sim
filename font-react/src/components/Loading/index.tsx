@@ -1,10 +1,25 @@
+import { useState, useEffect, memo } from "react";
+
 function Loading() {
+  const [isDelayed, setIsDelayed] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsDelayed(true);
+    }, 400);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (!isDelayed) {
+    return null;
+  }
+
   return (
-    // fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-75 z-50
     <div className="fixed inset-0 flex items-center justify-center bg-white z-50">
       <button
         type="button"
-        className=" text-black px-4 py-2 rounded flex items-center"
+        className="text-black px-4 py-2 rounded flex items-center"
         disabled
       >
         <svg
@@ -33,4 +48,4 @@ function Loading() {
   );
 }
 
-export default Loading;
+export default memo(Loading);

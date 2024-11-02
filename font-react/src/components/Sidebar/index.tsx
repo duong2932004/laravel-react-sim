@@ -1,3 +1,4 @@
+import { memo } from "react";
 import classNames from "classnames/bind";
 import styles from "./Sidebar.module.css";
 import { SideBar } from "@/interface/PhoneNumber";
@@ -123,4 +124,4 @@ function Sidebar(props: SideBar) {
   );
 }
 
-export default Sidebar;
+export default memo(Sidebar);

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, memo } from "react";
 import classNames from "classnames/bind";
 import { CiFilter } from "react-icons/ci";
 import { TiDelete } from "react-icons/ti";
@@ -136,4 +136,4 @@ function Filter() {
   );
 }
 
-export default Filter;
+export default memo(Filter);

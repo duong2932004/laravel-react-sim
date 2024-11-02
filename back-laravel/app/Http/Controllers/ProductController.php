@@ -21,7 +21,7 @@ class ProductController extends Controller
             if (!$data){
                 $products = Product::all();
                 $data = json_encode($products);
-                Redis::setex('project_sim:product:all-product',86400, $data);
+                Redis::setex('project_sim:product:all-product',43200, $data);
             }else{
                 $data = json_decode($data);
             }
@@ -100,7 +100,7 @@ class ProductController extends Controller
                     ];
                 });
                 $data = json_encode($filter_data);
-                Redis::setex('project_sim:auto_load_page:search-value',86400, $data);
+                Redis::setex('project_sim:auto_load_page:search-value',43200, $data);
             }else{
                 $data = json_decode($data);
             }
@@ -194,12 +194,10 @@ class ProductController extends Controller
                     'products' => $dataProduct,
                     'mobile_networks' => $data_mobile_networks,
                 ]);
-                Redis::setex('project_sim:auto_load_page:load-page', 86400, $data);
+                Redis::setex('project_sim:auto_load_page:load-page', 43200, $data);
             }else{
                 $data = json_decode($data, true);
             }
-
-
             return response()->json([
                 'success' => true,
                 'status' => 200,
@@ -239,14 +237,12 @@ class ProductController extends Controller
                         'image' => Storage::url($item->image),
                     ];
                 }
-
-                // Lưu dữ liệu vào Redis với thời gian sống 60 giây
                 $data = json_encode([
                     'category' => $categories,
                     'start_numbers' => $start_number,
                     'mobile_networks' => $data_mobile_networks,
                 ]);
-                Redis::setex('project_sim:auto_load_page:sidebar_data', 86400, $data);
+                Redis::setex('project_sim:auto_load_page:sidebar_data', 43200, $data);
             } else {
                 // Nếu dữ liệu đã có trong Redis, giải mã dữ liệu
                 $data = json_decode($data, true);
@@ -291,7 +287,7 @@ class ProductController extends Controller
             return response()->json([
                 'success' => true,
                 'status' => 200,
-                'data' => [],
+                'data' => $product,
                 'message' => '',
                 'error' => ''
             ]);
@@ -308,34 +304,58 @@ class ProductController extends Controller
     public function getOneMobileNetworks($mobile_networks_name)
     {
         try {
-            $data_mobile_networks = [];
-            $mobile_networks_query = Mobile_networks::query()->select('id','name','image')->where('name', '=', $mobile_networks_name)->first();
-            $products = Product::query()
-                ->where('mobile_networks_id', '=', $mobile_networks_query->id)
-                ->where('quantity', '>', 0)
-                ->select(
-                    'id',
-                    'start_number_id',
-                    'mobile_networks_id',
-                    'number',
-                    'price')
-                ->paginate(39)
-            ;
-            $mobile_networks = Mobile_networks::query()->select('id', 'name', 'image')->get();
-            foreach ($mobile_networks as $item) {
-                $data_mobile_networks[] = [
-                    'id' => $item->id,
-                    'name' => $item->name,
-                    'image' => Storage::url($item->image),
-                ];
+            $page = request()->get('page', 1);
+            $cacheKey = 'project_sim:pagination:mobile_networks:' . $mobile_networks_name . ':page:' . $page;
+
+            $data = Redis::get($cacheKey);
+
+            if (!$data) {
+                $data_mobile_networks = [];
+                $mobile_networks_query = Mobile_networks::query()
+                    ->select('id', 'name', 'image')
+                    ->where('name', '=', $mobile_networks_name)
+                    ->first();
+
+                if (!$mobile_networks_query) {
+                    return response()->json([
+                        'success' => false,
+                        'status' => 404,
+                        'data' => [],
+                        'message' => 'Mạng di động không tồn tại.',
+                        'error' => ''
+                    ]);
+                }
+
+                $products = Product::query()
+                    ->where('mobile_networks_id', '=', $mobile_networks_query->id)
+                    ->where('quantity', '>', 0)
+                    ->select('id', 'start_number_id', 'mobile_networks_id', 'number', 'price')
+                    ->paginate(39);
+
+                $mobile_networks = Mobile_networks::query()->select('id', 'name', 'image')->get();
+
+                foreach ($mobile_networks as $item) {
+                    $data_mobile_networks[] = [
+                        'id' => $item->id,
+                        'name' => $item->name,
+                        'image' => Storage::url($item->image),
+                    ];
+                }
+
+                $data = json_encode([
+                    'products' => $products,
+                    'mobile_networks' => $data_mobile_networks,
+                ]);
+
+                Redis::setex($cacheKey, 43200, $data);
+            } else {
+                $data = json_decode($data, true);
             }
+
             return response()->json([
                 'success' => true,
                 'status' => 200,
-                'data' => [
-                    'products' => $products,
-                    'mobile_networks' => $data_mobile_networks,
-                ],
+                'data' => $data,
                 'message' => '',
                 'error' => ''
             ]);
@@ -349,38 +369,50 @@ class ProductController extends Controller
             ]);
         }
     }
+
+
     public function getOneStartNumber($start_number_name)
     {
         try {
-            $data_mobile_networks = [];
-            $data_query = Start_number::query()->select('id','name')->where('name', '=', $start_number_name)->first();
-            $products = Product::query()
-                ->where('start_number_id', '=', $data_query->id)
-                ->where('quantity', '>', 0)
-                ->select(
-                    'id',
-                    'start_number_id',
-                    'mobile_networks_id',
-                    'number',
-                    'price'
-                )
-                ->paginate(39)
-            ;
-            $mobile_networks = Mobile_networks::query()->select('id', 'name', 'image')->get();
-            foreach ($mobile_networks as $item) {
-                $data_mobile_networks[] = [
-                    'id' => $item->id,
-                    'name' => $item->name,
-                    'image' => Storage::url($item->image),
-                ];
+            $page = request()->get('page', 1);
+            $cacheKey = 'project_sim:pagination:start_number:' . $start_number_name . ':page:' . $page;
+
+            $data = Redis::get($cacheKey);
+            if (!$data){
+                $data_mobile_networks = [];
+                $data_query = Start_number::query()->select('id','name')->where('name', '=', $start_number_name)->first();
+                $products = Product::query()
+                    ->where('start_number_id', '=', $data_query->id)
+                    ->where('quantity', '>', 0)
+                    ->select(
+                        'id',
+                        'start_number_id',
+                        'mobile_networks_id',
+                        'number',
+                        'price'
+                    )
+                    ->paginate(39)
+                ;
+                $mobile_networks = Mobile_networks::query()->select('id', 'name', 'image')->get();
+                foreach ($mobile_networks as $item) {
+                    $data_mobile_networks[] = [
+                        'id' => $item->id,
+                        'name' => $item->name,
+                        'image' => Storage::url($item->image),
+                    ];
+                }
+                $data = json_encode([
+                    'products' => $products,
+                    'mobile_networks' => $data_mobile_networks,
+                ]);
+                Redis::setex($cacheKey, 43200, $data);
+            }else{
+                $data = json_decode($data, true);
             }
             return response()->json([
                 'success' => true,
                 'status' => 200,
-                'data' => [
-                    'products' => $products,
-                    'mobile_networks' => $data_mobile_networks,
-                ],
+                'data' => $data,
                 'message' => '',
                 'error' => ''
             ]);
@@ -397,48 +429,58 @@ class ProductController extends Controller
     public function getOneTypeCategory($category_label)
     {
         try {
-            $data_mobile_networks = [];
+            $page = request()->get('page', 1);
+            $cacheKey = 'project_sim:pagination:category:' . $category_label . ':page:' . $page;
 
-            $data_query = Category::query()->select('id', 'name','label')->where('label', '=', $category_label)->first();
+            $data = Redis::get($cacheKey);
+            if (!$data){
+                $data_mobile_networks = [];
 
-            if (!$data_query) {
-                return response()->json([
-                    'success' => false,
-                    'status' => 404,
-                    'data' => [],
-                    'message' => 'Không tìm thấy danh mục',
-                    'error' => '',
+                $data_query = Category::query()->select('id', 'name','label')->where('label', '=', $category_label)->first();
+
+                if (!$data_query) {
+                    return response()->json([
+                        'success' => false,
+                        'status' => 404,
+                        'data' => [],
+                        'message' => 'Không tìm thấy danh mục',
+                        'error' => '',
+                    ]);
+                }
+
+                $products_category = Product_category::query()->select('product_id')
+                    ->where('category_id', '=', $data_query->id)->get();
+
+                $product_ids = $products_category->pluck('product_id')->toArray();
+
+                $products = Product::query()
+                    ->whereIn('id', $product_ids)
+                    ->where('quantity', '>', 0)
+                    ->select('id', 'start_number_id', 'mobile_networks_id', 'number', 'price')
+                    ->paginate(39);
+
+                $mobile_networks = Mobile_networks::query()->select('id', 'name', 'image')->get();
+                foreach ($mobile_networks as $item) {
+                    $data_mobile_networks[] = [
+                        'id' => $item->id,
+                        'name' => $item->name,
+                        'image' => Storage::url($item->image),
+                    ];
+                }
+                $data = json_encode([
+                    'products' => $products,
+                    'mobile_networks' => $data_mobile_networks,
+                    'category_name' => $data_query->name,
                 ]);
-            }
-
-            $products_category = Product_category::query()->select('product_id')
-                ->where('category_id', '=', $data_query->id)->get();
-
-            $product_ids = $products_category->pluck('product_id')->toArray();
-
-            $products = Product::query()
-                ->whereIn('id', $product_ids)
-                ->where('quantity', '>', 0)
-                ->select('id', 'start_number_id', 'mobile_networks_id', 'number', 'price')
-                ->paginate(39);
-
-            $mobile_networks = Mobile_networks::query()->select('id', 'name', 'image')->get();
-            foreach ($mobile_networks as $item) {
-                $data_mobile_networks[] = [
-                    'id' => $item->id,
-                    'name' => $item->name,
-                    'image' => Storage::url($item->image),
-                ];
+                Redis::setex($cacheKey, 43200, $data);
+            }else{
+                $data = json_decode($data, true);
             }
 
             return response()->json([
                 'success' => true,
                 'status' => 200,
-                'data' => [
-                    'products' => $products,
-                    'mobile_networks' => $data_mobile_networks,
-                    'category_name' => $data_query->name,
-                ],
+                'data' => $data,
                 'message' => '',
                 'error' => ''
             ]);
@@ -455,52 +497,60 @@ class ProductController extends Controller
     public function getOneTypePrice($priceRange)
     {
         try {
-            $data_mobile_networks = [];
+            $page = request()->get('page', 1);
+            $cacheKey = 'project_sim:pagination:priceRange:' . $priceRange . ':page:' . $page;
 
-            $priceBounds = explode('-', $priceRange);
+            $data = Redis::get($cacheKey);
+            if (!$data){
+                $data_mobile_networks = [];
 
-            if (count($priceBounds) !== 2) {
-                return response()->json([
-                    'success' => false,
-                    'status' => 400,
-                    'data' => [],
-                    'message' => 'Giá trị của price không hợp lệ, yêu cầu định dạng min-max',
-                    'error' => ''
+                $priceBounds = explode('-', $priceRange);
+
+                if (count($priceBounds) !== 2) {
+                    return response()->json([
+                        'success' => false,
+                        'status' => 400,
+                        'data' => [],
+                        'message' => 'Giá trị của price không hợp lệ, yêu cầu định dạng min-max',
+                        'error' => ''
+                    ]);
+                }
+
+                $minPrice = (float)$priceBounds[0];
+                $maxPrice = (float)$priceBounds[1];
+
+                $products = Product::query()
+                    ->whereBetween('price', [$minPrice, $maxPrice])
+                    ->where('quantity', '>', 0)
+                    ->select(
+                        'id',
+                        'start_number_id',
+                        'mobile_networks_id',
+                        'number',
+                        'price',
+                    )
+                    ->paginate(39);
+
+                $mobile_networks = Mobile_networks::query()->select('id', 'name', 'image')->get();
+                foreach ($mobile_networks as $item) {
+                    $data_mobile_networks[] = [
+                        'id' => $item->id,
+                        'name' => $item->name,
+                        'image' => Storage::url($item->image),
+                    ];
+                }
+                $data = json_encode([
+                    'products' => $products,
+                    'mobile_networks' => $data_mobile_networks,
                 ]);
+                Redis::setex($cacheKey, 43200, $data);
+            }else{
+                $data = json_decode($data, true);
             }
-
-            $minPrice = (float)$priceBounds[0];
-            $maxPrice = (float)$priceBounds[1];
-
-            $products = Product::query()
-                ->whereBetween('price', [$minPrice, $maxPrice])
-                ->where('quantity', '>', 0)
-                ->select(
-                    'id',
-                    'start_number_id',
-                    'mobile_networks_id',
-                    'number',
-                    'price',
-                )
-                ->paginate(39);
-
-            $mobile_networks = Mobile_networks::query()->select('id', 'name', 'image')->get();
-            foreach ($mobile_networks as $item) {
-                $data_mobile_networks[] = [
-                    'id' => $item->id,
-                    'name' => $item->name,
-                    'image' => Storage::url($item->image),
-                ];
-            }
-
             return response()->json([
                 'success' => true,
                 'status' => 200,
-                'data' => [
-                    'products' => $products,
-                    'mobile_networks' => $data_mobile_networks,
-
-                ],
+                'data' => $data,
                 'message' => '',
                 'error' => ''
             ]);
@@ -517,39 +567,49 @@ class ProductController extends Controller
     public function getOneTypeKeyWord($key_word)
     {
         try {
-            $data_mobile_networks = [];
+            $page = request()->get('page', 1);
+            $cacheKey = 'project_sim:pagination:keyword:' . $key_word . ':page:' . $page;
 
-            $last_digits = (strlen($key_word) === 3) ? $key_word : substr($key_word, -4);
+            $data = Redis::get($cacheKey);
+            if (!$data){
+                $data_mobile_networks = [];
 
-            // Sử dụng 'LIKE' để so sánh số cuối
-            $products = Product::query()
-                ->where('number', 'LIKE', '%' . $last_digits)
-                ->where('quantity', '>', 0)
-                ->select(
-                    'id',
-                    'start_number_id',
-                    'mobile_networks_id',
-                    'number',
-                    'price',
-                )
-                ->paginate(39);
+                $last_digits = (strlen($key_word) === 3) ? $key_word : substr($key_word, -4);
 
-            $mobile_networks = Mobile_networks::query()->select('id', 'name', 'image')->get();
-            foreach ($mobile_networks as $item) {
-                $data_mobile_networks[] = [
-                    'id' => $item->id,
-                    'name' => $item->name,
-                    'image' => Storage::url($item->image),
-                ];
+                // Sử dụng 'LIKE' để so sánh số cuối
+                $products = Product::query()
+                    ->where('number', 'LIKE', '%' . $last_digits)
+                    ->where('quantity', '>', 0)
+                    ->select(
+                        'id',
+                        'start_number_id',
+                        'mobile_networks_id',
+                        'number',
+                        'price',
+                    )
+                    ->paginate(39);
+
+                $mobile_networks = Mobile_networks::query()->select('id', 'name', 'image')->get();
+                foreach ($mobile_networks as $item) {
+                    $data_mobile_networks[] = [
+                        'id' => $item->id,
+                        'name' => $item->name,
+                        'image' => Storage::url($item->image),
+                    ];
+                }
+                $data = json_encode([
+                    'products' => $products,
+                    'mobile_networks' => $data_mobile_networks,
+                ]);
+                Redis::setex($cacheKey, 43200, $data);
+            }else{
+                $data = json_decode($data, true);
             }
 
             return response()->json([
                 'success' => true,
                 'status' => 200,
-                'data' => [
-                    'products' => $products,
-                    'mobile_networks' => $data_mobile_networks,
-                ],
+                'data' => $data,
                 'message' => '',
                 'error' => ''
             ]);

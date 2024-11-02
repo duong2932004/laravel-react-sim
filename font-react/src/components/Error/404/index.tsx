@@ -1,3 +1,4 @@
+import { memo } from "react";
 import classNames from "classnames/bind";
 import styles from "../Error.module.css";
 import imageNodata from "@/assets/img/no-data.png";
@@ -19,4 +20,4 @@ const NoData = () => {
   );
 };
 
-export default NoData;
+export default memo(NoData);

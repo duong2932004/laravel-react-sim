@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, memo } from "react";
 import classNames from "classnames/bind";
 import styles from "./Header.module.css";
 import Search from "@/components/Search";
@@ -154,4 +154,4 @@ function Header(props: SideBar) {
   );
 }
 
-export default Header;
+export default memo(Header);

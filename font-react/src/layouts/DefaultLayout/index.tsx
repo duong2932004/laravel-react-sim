@@ -7,6 +7,9 @@ import { SideBarLoading } from "@/services/Home";
 import Loading from "@/components/Loading";
 import { useQuery } from "@tanstack/react-query";
 import { SidebarResult } from "@/interface/PhoneNumber";
+import Err500 from "@/components/Error/500";
+import Reload from "@/components/Error/Reload";
+import { useEffect } from "react";
 
 const cx = classNames.bind(styles);
 
@@ -48,19 +51,37 @@ function DefaultLayout({ children }: ChildrenDefaultLayoutITF) {
     retry: 3,
   });
 
+  useEffect(() => {
+    if (
+      !sidebarData ||
+      !sidebarData.category ||
+      !sidebarData.mobile_networks ||
+      !sidebarData.start_numbers ||
+      sidebarData.category.length === 0 ||
+      sidebarData.mobile_networks.length === 0 ||
+      sidebarData.start_numbers.length === 0
+    ) {
+      const timer = setTimeout(() => {
+        refetch();
+      }, 0);
+
+      return () => clearTimeout(timer);
+    }
+  }, [sidebarData, refetch]);
+
   if (isLoading) {
     return <Loading />;
   }
 
   if (isError) {
+    console.error(error.message);
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
-        {error.message}
+        <Err500 />
       </div>
     );
   }
 
-  // Kiểm tra dữ liệu undefined
   if (!sidebarData) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
@@ -70,6 +91,17 @@ function DefaultLayout({ children }: ChildrenDefaultLayoutITF) {
         </button>
       </div>
     );
+  }
+  if (
+    !sidebarData ||
+    !sidebarData.category ||
+    sidebarData.category.length === 0 ||
+    !sidebarData.mobile_networks ||
+    sidebarData.mobile_networks.length === 0 ||
+    !sidebarData.start_numbers ||
+    sidebarData.start_numbers.length === 0
+  ) {
+    return <Reload onRefetch={refetch} />;
   }
 
   return (
