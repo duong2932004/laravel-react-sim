@@ -21,6 +21,7 @@ Dự án này bao gồm hai phần chính:
 
 ## Cài đặt
 - Cài đặt cho phần Backend (back-laravel):
+  ```bash
     cd back-laravel
     composer install
     cp .env.example .env
@@ -28,6 +29,7 @@ Dự án này bao gồm hai phần chính:
     php artisan migrate
     php artisan db:seed(tạo dữ liệu ảo để test)
 - Cài đặt cho phần Frontend (font-react)
+   ```bash
     cd font-react
     npm install
 ## Setup .env
