@@ -1,6 +1,6 @@
 import urlBackEnd from "@/utils/axios";
 
-export const searchGet = async (path: string) => {
-  const result = await urlBackEnd.get(`/products/search/${path}`);
+export const SearchValue = async () => {
+  const result = await urlBackEnd.get(`/search-value`);
   return result.data;
 };

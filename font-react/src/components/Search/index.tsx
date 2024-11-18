@@ -1,70 +1,70 @@
-import { useRef, useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useRef, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { IoIosAlert } from "react-icons/io";
 import { TiDelete } from "react-icons/ti";
-import { DataSearch, ResultSearch } from "@/interface/PhoneNumber";
-import useDebounce from "@/hooks/useDebounce";
-import { searchGet } from "@/services/Search";
 import { AiOutlineLoading } from "react-icons/ai";
+import { useNavigate } from "react-router-dom";
 import classNames from "classnames/bind";
 import styles from "./Search.module.css";
-import { useNavigate } from "react-router-dom";
 import config from "@/config";
+import { SearchValue } from "@/services/Search";
+
+interface SearchResult {
+  number: string;
+  mobile_network_name: string;
+}
+
 const cx = classNames.bind(styles);
+
 function Search() {
   const navigate = useNavigate();
-
-  const { register, watch, setValue } = useForm<DataSearch>({
-    defaultValues: { search: "" },
-  });
-
-  const [loading, setLoading] = useState(false);
+  const [searchValue, setSearchValue] = useState("");
   const [show, setShow] = useState(false);
-  const [searchValue, setSearchValue] = useState<string>("");
-  const [result, setResult] = useState<ResultSearch[]>([]);
   const inputRef = useRef<HTMLInputElement | null>(null);
 
-  const debouncedValue = useDebounce(watch("search"), 500);
+  const { data: allSimData = [], isLoading } = useQuery<SearchResult[]>({
+    queryKey: ["simData"],
+    queryFn: async () => {
+      const response = await SearchValue();
+      console.log(response.data);
 
-  useEffect(() => {
-    if (!debouncedValue.trim()) {
-      setValue("search", "");
-      setResult([]);
-      return;
-    }
+      if (!response.data) return [];
+      return response.data;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
 
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        const result = await searchGet(debouncedValue);
-        if (result.status == 200) {
-          setResult(result.data);
-          console.log(result.data);
-        } else {
-          setResult([]);
+  const getFilteredResults = () => {
+    if (!searchValue.trim()) return [];
+
+    const searchTerm = searchValue.toLowerCase();
+    return allSimData
+      .filter((item) => {
+        const fullText =
+          `${item.mobile_network_name} - ${item.number}`.toLowerCase();
+
+        if (searchTerm.includes("*")) {
+          const [prefix, suffix] = searchTerm.split("*");
+          return (
+            (!prefix || item.number.toLowerCase().startsWith(prefix)) &&
+            (!suffix || item.number.toLowerCase().endsWith(suffix))
+          );
         }
-      } catch (error) {
-        console.error("Error fetching phone numbers:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
 
-    fetchData();
-  }, [debouncedValue]);
+        return fullText.includes(searchTerm);
+      })
+      .slice(0, 50);
+  };
+
+  const filteredResults = getFilteredResults();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.value.startsWith(" ")) {
-      return;
-    }
+    if (e.target.value.startsWith(" ")) return;
     setSearchValue(e.target.value);
-    setValue("search", e.target.value);
   };
 
   const handleClearSearch = () => {
     setSearchValue("");
-    setValue("search", "");
-    setResult([]);
     inputRef.current?.focus();
   };
 
@@ -77,27 +77,25 @@ function Search() {
   const handleResult = (result: string) => {
     navigate(config.routes.routes.detail(result));
     setSearchValue("");
-    setValue("search", "");
-    setResult([]);
+    setShow(false);
   };
 
   return (
     <div className="relative">
       <div className="relative">
         <input
-          autoComplete="off"
-          {...register("search")}
           ref={inputRef}
+          value={searchValue}
+          onChange={handleChange}
           onFocus={() => setShow(true)}
           onBlur={() => setShow(false)}
-          onChange={handleChange}
-          value={searchValue}
           type="text"
-          placeholder="Search..."
+          placeholder="Tìm kiếm số sim..."
           className="w-full lg:min-w-96 py-2 px-3 rounded-full focus:outline-none inline-flex items-center gap-x-1 text-sm font-semibold leading-6 text-gray-900"
+          autoComplete="off"
         />
 
-        {!loading && searchValue && (
+        {!isLoading && searchValue && (
           <button
             className="absolute top-1 right-1"
             onClick={handleClearSearch}
@@ -106,7 +104,7 @@ function Search() {
           </button>
         )}
 
-        {loading && (
+        {isLoading && (
           <AiOutlineLoading
             className="animate-spin absolute right-1 top-1 text-indigo-500"
             fontSize={"30px"}
@@ -115,10 +113,7 @@ function Search() {
       </div>
 
       {show && (
-        <div
-          id="search-result"
-          className="absolute left-1/2 z-10 mt-2 flex w-screen max-w-max -translate-x-1/2 px-4"
-        >
+        <div className="absolute left-1/2 z-10 mt-2 flex w-screen max-w-max -translate-x-1/2 px-4">
           <div className="w-screen max-w-md flex-auto overflow-hidden rounded-3xl bg-white text-sm leading-6 shadow-lg ring-1 ring-gray-900/5">
             <div
               className={`${cx("scroll-filter")} max-h-60 overflow-y-auto p-4`}
@@ -146,33 +141,27 @@ function Search() {
               ) : (
                 <div>
                   <ul>
-                    {result.length > 0 ? (
-                      result.map((item, index) => (
+                    {filteredResults.length > 0 ? (
+                      filteredResults.map((item, index) => (
                         <li
                           onMouseDown={() => handleResult(item.number)}
                           onClick={() => handleResult(item.number)}
                           key={index}
-                          className="hover:bg-gray-500 p-1 rounded font-medium"
+                          className="hover:bg-gray-500 p-1 rounded font-medium cursor-pointer"
                           dangerouslySetInnerHTML={{
-                            __html: `${highlightText(
+                            __html: highlightText(
                               `${item.mobile_network_name} - ${item.number}`,
                               searchValue
-                            )}`,
+                            ),
                           }}
                         />
                       ))
                     ) : (
-                      <>
-                        {!loading ? (
-                          <li className="hover:bg-gray-500 p-1 rounded">
-                            Không có kết quả tìm kiếm nào!
-                          </li>
-                        ) : (
-                          <li className="hover:bg-gray-500 p-1 rounded">
-                            Đang tải...
-                          </li>
-                        )}
-                      </>
+                      <li className="hover:bg-gray-500 p-1 rounded">
+                        {isLoading
+                          ? "Đang tải..."
+                          : "Không có kết quả tìm kiếm nào!"}
+                      </li>
                     )}
                   </ul>
                 </div>
